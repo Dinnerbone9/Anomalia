@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аномалия: Финал</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            font-family: 'Georgia', serif;
+            overflow: hidden;
+            color: #f0f0f0;
+        }
+
+        #game-wrapper {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: #080808;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            cursor: pointer;
+            display: block;
+            touch-action: none;
+            border: none;
+        }
+
+        /* --- ЛОББИ --- */
+        #lobby-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            z-index: 20; transition: opacity 0.8s ease; background: rgba(0,0,0,0.85); pointer-events: auto;
+        }
+        #lobby-layer.hidden { opacity: 0; pointer-events: none; }
+        .lobby-title { font-size: min(8vh, 8vw); color: #e0a800; text-shadow: 0 0 5vh rgba(224,168,0,0.3); letter-spacing: 1vw; font-weight: bold; margin-bottom: 2vh; }
+        .lobby-subtitle { font-size: min(2vh, 2vw); color: #8899aa; letter-spacing: 0.5vw; margin-bottom: 5vh; }
+        .lobby-btn { background: #e0a800; border: none; color: #0a0a0a; padding: 2vh 6vw; border-radius: 0.6vh; font-weight: bold; font-size: min(2.5vh, 2.5vw); cursor: pointer; font-family: 'Georgia', serif; transition: 0.3s; box-shadow: 0 0 5vh rgba(224,168,0,0.4); z-index: 21; }
+        .lobby-btn:hover { transform: scale(1.05); background: #f1c40f; }
+
+        /* --- ИГРА --- */
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: none;
+        }
+        
+        #ui-inventory {
+            position: absolute; top: 3vh; left: 2vw;
+            background: rgba(8, 8, 8, 0.92); padding: 1vh 1vw; border-radius: 1vh;
+            border: 1px solid rgba(34,34,34,0.5); pointer-events: auto; backdrop-filter: blur(6px);
+            display: flex; flex-direction: column; gap: 1vh; box-shadow: 0 0 3vw rgba(0,0,0,0.8);
+        }
+        .inv-slot {
+            width: 5vh; height: 5vh; min-width: 40px; min-height: 40px; max-width: 70px; max-height: 70px;
+            background: #141414; border: 1px solid #2a2a2a; border-radius: 0.6vh;
+            display: flex; justify-content: center; align-items: center; font-size: 3vh;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .inv-slot:hover { border-color: #666; transform: scale(1.08); background: #222; }
+        .inv-slot.selected { border-color: #f1c40f; box-shadow: 0 0 2vh rgba(241,196,15,0.4); background: #1a1a1a; }
+        .inv-slot.empty { color: #333; cursor: default; font-size: 1.5vh; }
+        
+        #ui-desc {
+            position: absolute; bottom: 5vh; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.9); padding: 1.5vh 3vw; border-radius: 4vh;
+            font-size: min(1.8vh, 1.8vw); color: #f0f0f0; border: 1px solid rgba(42,42,42,0.5);
+            backdrop-filter: blur(6px); pointer-events: none; text-align: center; white-space: nowrap; box-shadow: 0 1vh 3vh rgba(0,0,0,0.8);
+        }
+        
+        #ui-back {
+            position: absolute; bottom: 5vh; right: 3vw;
+            background: rgba(0,0,0,0.9); border: 1px solid #444; color: #aaa;
+            padding: 1.2vh 2vw; border-radius: 0.6vh; cursor: pointer; font-size: min(1.8vh, 1.8vw);
+            pointer-events: auto; display: none; font-family: 'Segoe UI', sans-serif; transition: all 0.2s;
+        }
+        #ui-back:hover { border-color: #888; color: #fff; }
+
+        #win-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; justify-content: center; align-items: center; flex-direction: column;
+            background: rgba(0,0,0,0.92); z-index: 10; backdrop-filter: blur(8px);
+            padding: 4vh 4vw; text-align: center;
+        }
+        #win-screen h1 { color: #00ffcc; font-size: min(6vh, 6vw); letter-spacing: 0.5vw; text-shadow: 0 0 4vh rgba(0,255,204,0.3); font-weight: 300; margin-bottom: 2vh; }
+        #win-screen p { color: #ccc; font-size: min(2.5vh, 2.5vw); max-width: 70vw; line-height: 1.8; margin: 0 auto 3vh; }
+        #win-screen .final-btn { background: #e0a800; border: none; color: #0a0a0a; padding: 2vh 4vw; border-radius: 0.6vh; font-weight: bold; font-size: min(2vh, 2vw); cursor: pointer; font-family: inherit; transition: 0.3s; box-shadow: 0 0 4vh rgba(224,168,0,0.3); }
+        #win-screen .final-btn:hover { transform: scale(1.05); background: #f1c40f; }
+        #win-screen .cabin-bg-text { color: #666; font-size: min(1.5vh, 1.5vw); margin-top: 2vh; font-style: italic; border-top: 1px solid #333; padding-top: 2vh; width: 60%; }
+
+        #loading {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center; background: #050505;
+            z-index: 50; color: #666; font-size: min(2.5vh, 2.5vw); font-family: sans-serif;
+            letter-spacing: 0.4vw; transition: opacity 1s;
+        }
+        #loading.hidden { opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div id="game-wrapper">
+        <div id="loading">ЗАГРУЗКА ОКРУЖЕНИЯ...</div>
+        <canvas id="game-canvas"></canvas>
+        
+        <!-- ЛОББИ -->
+        <div id="lobby-layer">
+            <div class="lobby-title">АНОМАЛИЯ</div>
+            <div class="lobby-subtitle">ТАЙНА ЗИМНЕГО ЛЕСА</div>
+            <button class="lobby-btn" onclick="startGame()">▶ НАЧАТЬ ИГРУ</button>
+        </div>
+
+        <!-- ИГРА -->
+        <div id="ui-layer">
+            <div id="ui-inventory"></div>
+            <div id="ui-desc">Осмотритесь вокруг...</div>
+            <button id="ui-back" onclick="goBack()">↩ ОТОЙТИ</button>
+        </div>
+
+        <!-- ЭКРАН ЗАВЕРШЕНИЯ (Победа через второй бункер) -->
+        <div id="win-screen">
+            <h1>⚡ ВЫ ВЫЖИЛИ</h1>
+            <p>В бункере были запасы воды и еды. Вы выжили и жили долго и счастливо.</p>
+            <button class="final-btn" onclick="location.reload()">ПРОЙТИ СНОВА</button>
+            <div class="cabin-bg-text">... аномалия осталась позади.</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const loading = document.getElementById('loading');
+        const lobbyLayer = document.getElementById('lobby-layer');
+        const uiLayer = document.getElementById('ui-layer');
+        const descEl = document.getElementById('ui-desc');
+        const backBtn = document.getElementById('ui-back');
+        const invEl = document.getElementById('ui-inventory');
+        const winScreen = document.getElementById('win-screen');
+
+        // ========== ДАННЫЕ ИГРЫ ==========
+        let inventory = [];
+        let selectedItem = null;
+        let viewMode = 'main';
+        let zoomTarget = null;
+        let gameWin = false;
+        let gameStarted = false;
+
+        let level = 1;
+        let currentZone = 'bunker_hall';
+
+        let state = {
+            phoneTaken: false, keyTaken: false, boxTaken: false, screwdriverTaken: false, 
+            fridgeMoved: false, hatchOpened: false,
+            powerOn: false, doorOpened: false, batteryTaken: false,
+            keyCard1: false, keyCard2: false, 
+            greenDoorOpened: false, blueDoorOpened: false, finalExitOpened: false,
+            forestRevealed: false, cabinEntered: false,
+            keyUsed: false, secretNoteTaken: false,
+            diaryOpened: false,
+            finalSecretFound: false,
+            stickTaken: false, woodTaken: false, fireStarted: false, fireClicks: 0, bunkerUnlocked: false,
+            gameCompleted: false
+        };
+
+        const itemIcons = { 
+            'телефон': '📱', 'ключ': '🗝️', 'коробка': '📦', 'отвертка': '🪛', 'аккумулятор': '🔋',
+            'зелёная карта': '🟩', 'голубая карта': '🟦', 'палка': '🪵', 'хворост': '🌲'
+        };
+
+        const ZOOM_W = 1100;
+        const ZOOM_H = 620;
+
+        let zones = {};
+
+        function updateZonesForLevel() {
+            if (level === 1) {
+                zones = {
+                    bed:    { x: 340,  y: 430, w: 160, h: 130 },
+                    desk:   { x: 560,  y: 410, w: 260, h: 120 },
+                    closet: { x: 920,  y: 40,  w: 140, h: 300 },
+                    fridge: { x: 15,   y: 80,  w: 90,  h: 340 },
+                    hatch:  { x: 140,  y: 450, w: 100, h: 90 }
+                };
+            } else if (level === 2) {
+                if (currentZone === 'basement') {
+                    zones = {
+                        lever:  { x: 150,  y: 100, w: 140, h: 240 },
+                        door:   { x: 450,  y: 100, w: 200, h: 350 },
+                        passage:{ x: 850,  y: 100, w: 200, h: 400 }
+                    };
+                } else if (currentZone === 'generator') {
+                    zones = {
+                        cell:   { x: 50,   y: 100, w: 160, h: 320 },
+                        exit:   { x: 850,  y: 100, w: 200, h: 400 }
+                    };
+                }
+            } else if (level === 3) {
+                if (currentZone === 'bunker_hall') {
+                    zones = {
+                        exitDoor: { x: 700,  y: 100, w: 180, h: 300 },
+                        greenDoor:{ x: 300,  y: 100, w: 150, h: 300 },
+                        blueDoor: { x: 480,  y: 100, w: 150, h: 300 }
+                    };
+                } else if (currentZone === 'lab1') {
+                    zones = {
+                        table1:  { x: 400,  y: 350, w: 300, h: 150 },
+                        backExit:{ x: 850,  y: 100, w: 200, h: 400 }
+                    };
+                } else if (currentZone === 'rest_room') {
+                    zones = {
+                        table2:  { x: 400,  y: 350, w: 300, h: 150 },
+                        drawer:  { x: 300,  y: 360, w: 80, h: 80 },
+                        backExit:{ x: 850,  y: 100, w: 200, h: 400 }
+                    };
+                }
+            } else if (level === 4) {
+                zones = {
+                    cabinDoor: { x: 100,  y: 280, w: 180, h: 180 },
+                    forestPath:{ x: 540,  y: 250, w: 180, h: 200 },
+                    lake:      { x: 850,  y: 350, w: 180, h: 150 }
+                };
+            } else if (level === 5) {
+                zones = {
+                    twigs:     { x: 150,  y: 400, w: 150, h: 100 },
+                    stick:     { x: 400,  y: 450, w: 100, h: 80 },
+                    bunkerDoor:{ x: 450,  y: 150, w: 200, h: 280 }
+                };
+            } else if (level === 6) {
+                zones = {
+                    diary: { x: 480, y: 360, w: 140, h: 25 },
+                    backExit: { x: 800, y: 100, w: 200, h: 400 }
+                };
+            }
+        }
+
+        function resizeCanvas() {
+            const container = document.getElementById('game-wrapper');
+            const rect = container.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            drawScene();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function getCanvasCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX - rect.left) * (ZOOM_W / rect.width),
+                y: (e.clientY - rect.top) * (ZOOM_H / rect.height)
+            };
+        }
+
+        // ================= ОТРИСОВКА =================
+        function drawScene() {
+            const w = canvas.width;
+            const h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+            ctx.save();
+            ctx.scale(w / ZOOM_W, h / ZOOM_H);
+
+            if (!gameStarted) {
+                // Лобби
+                const wallGrad = ctx.createRadialGradient(550, 200, 50, 300, 300, 900);
+                wallGrad.addColorStop(0, '#3d4f5a'); wallGrad.addColorStop(0.5, '#1a252c'); wallGrad.addColorStop(1, '#050505');
+                ctx.fillStyle = wallGrad; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
+                const floorGrad = ctx.createLinearGradient(0, 400, 0, ZOOM_H);
+                floorGrad.addColorStop(0, '#2a3b45'); floorGrad.addColorStop(0.5, '#0a0a0a'); floorGrad.addColorStop(1, '#000000');
+                ctx.fillStyle = floorGrad; ctx.fillRect(0, 400, ZOOM_W, ZOOM_H - 400);
+                for(let i=0; i<40; i++) {
+                    ctx.fillStyle = `rgba(200,200,220,${0.005 + Math.random()*0.015})`;
+                    ctx.beginPath(); ctx.arc(100 + Math.random()*900, 50 + Math.random()*500, 2 + Math.random()*12, 0, Math.PI*2); ctx.fill();
+                }
+
+            } else if (viewMode === 'main') {
+                if (level === 1) {
+                    drawRoomLevel1();
+                    descEl.innerText = "Осмотритесь вокруг...";
+                } else if (level === 2) {
+                    if (currentZone === 'basement') {
+                        drawBasementLevel2();
+                        descEl.innerText = "Подвал. Слева рычаг, справа проход.";
+                    } else if (currentZone === 'generator') {
+                        drawGeneratorRoom();
+                        descEl.innerText = "Генераторная комната.";
+                    }
+                } else if (level === 3) {
+                    if (currentZone === 'bunker_hall') {
+                        drawBunkerHall();
+                        descEl.innerText = "Вы в бункере. Выход справа, двери слева.";
+                    } else if (currentZone === 'lab1') {
+                        drawLab1();
+                        descEl.innerText = "Лаборатория 1.";
+                    } else if (currentZone === 'rest_room') {
+                        drawRestRoom();
+                        descEl.innerText = "Комната отдыха.";
+                    }
+                } else if (level === 4) {
+                    drawWinterForest();
+                    descEl.innerText = "Вы выбрались в зимний лес.";
+                } else if (level === 5) {
+                    drawDeepGlade();
+                    descEl.innerText = "Глубокая поляна. В центре — замёрзший бункер.";
+                } else if (level === 6) {
+                    drawCabinInterior();
+                    descEl.innerText = "Вы внутри хижины. Тепло и уютно...";
+                }
+            } else {
+                drawZoomItems();
+            }
+            ctx.restore();
+        }
+
+        // ================= 1. КОМНАТА =================
+        function drawRoomLevel1() {
+            const wallGrad = ctx.createRadialGradient(550, 180, 50, 300, 300, 900);
+            wallGrad.addColorStop(0, '#6a7a85'); wallGrad.addColorStop(0.4, '#3d4f5a');
+            wallGrad.addColorStop(0.8, '#141e24'); wallGrad.addColorStop(1, '#0a0a0a');
+            ctx.fillStyle = wallGrad; ctx.fillRect(0, 0, ZOOM_W, 420);
+            
+            ctx.fillStyle = '#121212'; ctx.fillRect(0, 0, ZOOM_W, 80);
+            ctx.fillStyle = '#1c1c1c';
+            ctx.fillRect(80, 0, 50, 80); ctx.fillRect(380, 0, 50, 80);
+            ctx.fillRect(680, 0, 50, 80); ctx.fillRect(980, 0, 50, 80);
+            ctx.fillStyle = 'rgba(255, 200, 100, 0.03)'; ctx.beginPath(); ctx.arc(550, 30, 400, 0, Math.PI*2); ctx.fill();
+
+            const floorGrad = ctx.createLinearGradient(0, 420, 0, ZOOM_H);
+            floorGrad.addColorStop(0, '#455a64'); floorGrad.addColorStop(0.3, '#2a3b45');
+            floorGrad.addColorStop(0.8, '#0a0a0a'); floorGrad.addColorStop(1, '#000000');
+            ctx.fillStyle = floorGrad; ctx.fillRect(0, 420, ZOOM_W, ZOOM_H - 420);
+            ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1.5;
+            for(let i=-600; i<600; i+=90) { 
+                ctx.beginPath(); ctx.moveTo(550 + i, 420); ctx.lineTo(550 + i*4.5, ZOOM_H); ctx.stroke(); 
+            }
+            ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
+            for(let i=0; i<60; i++) {
+                ctx.fillStyle = `rgba(200,200,220,${0.003 + Math.random()*0.015})`;
+                ctx.beginPath(); ctx.arc(100 + Math.random()*900, 50 + Math.random()*500, 2 + Math.random()*12, 0, Math.PI*2); ctx.fill();
+            }
+
+            ctx.save();
+            const beamGrad = ctx.createLinearGradient(550, 50, 300, ZOOM_H);
+            beamGrad.addColorStop(0, 'rgba(255, 240, 200, 0.12)'); beamGrad.addColorStop(0.3, 'rgba(255, 240, 200, 0.05)'); beamGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = beamGrad; ctx.beginPath(); ctx.moveTo(300, 40); ctx.lineTo(800, 40); ctx.lineTo(1050, ZOOM_H); ctx.lineTo(50, ZOOM_H); ctx.closePath(); ctx.fill();
+            ctx.shadowColor = 'rgba(255,255,200,0.05)'; ctx.shadowBlur = 80;
+            ctx.fillStyle = '#8bb5cc'; ctx.fillRect(300, 60, 500, 260); ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 22; ctx.strokeRect(300, 60, 500, 260);
+            ctx.strokeStyle = '#4e342e'; ctx.lineWidth = 10; 
+            ctx.beginPath(); ctx.moveTo(550, 60); ctx.lineTo(550, 320); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(300, 190); ctx.lineTo(800, 190); ctx.stroke();
+            ctx.restore();
+
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 40; ctx.shadowOffsetX = -25;
+            const closetGrad = ctx.createLinearGradient(920, 0, 1060, 0);
+            closetGrad.addColorStop(0, '#2c1a12'); closetGrad.addColorStop(0.5, '#6d4c41'); closetGrad.addColorStop(1, '#2c1a12');
+            ctx.fillStyle = closetGrad; ctx.fillRect(920, 60, 140, 280); ctx.shadowBlur = 0;
+            ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 10;
+            ctx.fillStyle = '#d4af37'; ctx.fillRect(940, 120, 8, 40); ctx.fillRect(1030, 120, 8, 40); ctx.shadowBlur = 0;
+            ctx.restore();
+
+            // ХОЛОДИЛЬНИК (слева)
+            ctx.save(); let fX = 15, fY = 70, fW = 90, fH = 350;
+            if (state.fridgeMoved) fX = -80;
+            ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 50; ctx.shadowOffsetX = 15;
+            const fGrad = ctx.createLinearGradient(fX, 0, fX+fW, 0);
+            fGrad.addColorStop(0, '#f5f5f5'); fGrad.addColorStop(0.3, '#ffffff'); fGrad.addColorStop(0.7, '#e0e0e0'); fGrad.addColorStop(1, '#bdbdbd');
+            ctx.fillStyle = fGrad; ctx.fillRect(fX, fY, fW, fH); ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(0,0,0,0.1)'; ctx.fillRect(fX, fY, fW, 8); ctx.fillRect(fX, fY+fH-8, fW, 8); ctx.fillRect(fX, fY, 8, fH);
+            ctx.fillStyle = '#546e7a'; ctx.fillRect(fX+75, fY+50, 10, 45); ctx.fillRect(fX+75, fY+220, 10, 45);
+            ctx.restore();
+
+            if (state.fridgeMoved) {
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 40;
+                ctx.fillStyle = 'rgba(0,0,0,0.95)'; ctx.beginPath(); ctx.roundRect(120, 460, 100, 90, 8); ctx.fill();
+                ctx.fillStyle = '#333'; ctx.beginPath(); ctx.roundRect(130, 470, 80, 70, 6); ctx.fill(); ctx.shadowBlur = 0;
+                ctx.fillStyle = '#666'; ctx.fillRect(150, 500, 40, 10); ctx.fillRect(160, 490, 20, 30);
+                if (state.hatchOpened) {
+                    ctx.shadowColor = '#00ffcc'; ctx.shadowBlur = 60;
+                    ctx.fillStyle = 'rgba(0,255,204,0.1)'; ctx.beginPath(); ctx.roundRect(130, 470, 80, 70, 6); ctx.fill();
+                    ctx.shadowBlur = 0; ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center';
+                    ctx.fillText('⬇ ОТКРЫТ', 170, 515);
+                }
+                ctx.restore();
+            }
+
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 35;
+            const deskGrad = ctx.createLinearGradient(400, 0, 750, 0);
+            deskGrad.addColorStop(0, '#2c1a12'); deskGrad.addColorStop(0.5, '#6d4c41'); deskGrad.addColorStop(1, '#2c1a12');
+            ctx.fillStyle = deskGrad; ctx.beginPath(); ctx.moveTo(480, 490); ctx.quadraticCurveTo(600, 470, 720, 490); ctx.lineTo(740, 520); ctx.quadraticCurveTo(600, 535, 460, 520); ctx.closePath(); ctx.fill();
+            ctx.shadowBlur = 0; ctx.fillStyle = '#0f0f0f'; ctx.fillRect(520, 440, 160, 50);
+            ctx.fillStyle = '#00bfff'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('ПОИСК СИГНАЛА...', 600, 470);
+            ctx.restore();
+
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 25;
+            const bedGrad = ctx.createLinearGradient(300, 480, 400, 550);
+            bedGrad.addColorStop(0, '#1976d2'); bedGrad.addColorStop(0.5, '#0d47a1'); bedGrad.addColorStop(1, '#1565c0');
+            ctx.fillStyle = bedGrad; ctx.beginPath(); ctx.roundRect(300, 470, 160, 90, 12); ctx.fill();
+            ctx.shadowBlur = 0; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(320, 485, 30, 18, -0.2, 0, Math.PI*2); ctx.fill();
+            ctx.font = '45px sans-serif'; ctx.fillText('🛏️', 310, 520);
+            ctx.restore();
+        }
+
+        // ================= 2. ПОДВАЛ =================
+        function drawBasementLevel2() {
+            const wallGrad2 = ctx.createLinearGradient(0, 0, 0, ZOOM_H);
+            wallGrad2.addColorStop(0, '#1a1a1a'); wallGrad2.addColorStop(0.3, '#2c2c2c'); wallGrad2.addColorStop(1, '#0a0a0a');
+            ctx.fillStyle = wallGrad2; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
+            ctx.fillStyle = '#151515'; ctx.beginPath(); ctx.arc(550, 250, 500, Math.PI, 0, false); ctx.fill();
+            const floorGrad2 = ctx.createLinearGradient(0, 450, 0, ZOOM_H);
+            floorGrad2.addColorStop(0, '#2c2c2c'); floorGrad2.addColorStop(1, '#000000');
+            ctx.fillStyle = floorGrad2; ctx.fillRect(0, 450, ZOOM_W, ZOOM_H - 450);
+
+            const torchGlow = ctx.createRadialGradient(100, 250, 50, 100, 250, 400);
+            torchGlow.addColorStop(0, 'rgba(255, 150, 50, 0.15)'); torchGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = torchGlow; ctx.beginPath(); ctx.arc(100, 250, 400, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#8d6e63'; ctx.fillRect(75, 200, 50, 20);
+            ctx.fillStyle = '#e65100'; ctx.fillRect(90, 180, 20, 30);
+            ctx.shadowColor = 'rgba(255, 150, 0, 0.3)'; ctx.shadowBlur = 30;
+            ctx.fillStyle = '#ff9800'; ctx.beginPath(); ctx.arc(100, 175, 15, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 20;
+            ctx.fillStyle = '#37474f'; ctx.fillRect(170, 140, 70, 200);
+            ctx.fillStyle = '#546e7a'; ctx.fillRect(185, 220, 40, 60);
+            ctx.shadowBlur = 0;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            if (state.powerOn) {
+                ctx.shadowColor = '#00ffcc'; ctx.shadowBlur = 25;
+                ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 26px sans-serif';
+                ctx.fillText('⚡ ПИТАНИЕ ВКЛ.', 205, 100);
+            } else {
+                ctx.shadowColor = '#ff1744'; ctx.shadowBlur = 15;
+                ctx.fillStyle = '#ff1744'; ctx.font = 'bold 26px sans-serif';
+                ctx.fillText('⚠ НЕТ ПИТАНИЯ', 205, 100);
+            }
+            ctx.shadowBlur = 0;
+            ctx.restore();
+
+            // ДВЕРЬ БУНКЕРА (меняется надпись)
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 30;
+            ctx.fillStyle = '#3e2723'; ctx.beginPath(); ctx.roundRect(430, 80, 240, 380, 20); ctx.fill();
+            ctx.fillStyle = '#2c1a12'; ctx.beginPath(); ctx.roundRect(440, 90, 220, 360, 15); ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 20;
+            ctx.fillStyle = '#78909c'; ctx.beginPath(); ctx.arc(550, 250, 45, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#546e7a'; ctx.beginPath(); ctx.arc(550, 250, 30, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.textAlign = 'center'; ctx.font = 'bold 22px sans-serif';
+            if (state.doorOpened) {
+                ctx.fillStyle = '#00ffcc'; ctx.fillText('ОТКРЫТО', 550, 210);
+            } else if (state.powerOn) {
+                ctx.fillStyle = '#00ffcc'; ctx.fillText('ОТКРЫТО', 550, 210);
+            } else {
+                ctx.fillStyle = '#ff1744'; ctx.fillText('🔒 ЗАКРЫТО', 550, 210);
+            }
+            ctx.restore();
+
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 20;
+            ctx.fillStyle = '#0a0a0a'; ctx.fillRect(850, 80, 250, 400);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#555'; ctx.font = '22px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('➡ ПРОХОД В ГЕНЕРАТОРНУЮ', 975, 450);
+            ctx.restore();
+        }
+
+        // ================= 3. ГЕНЕРАТОРНАЯ =================
+        function drawGeneratorRoom() {
+            const wallGrad3 = ctx.createLinearGradient(0, 0, 0, ZOOM_H);
+            wallGrad3.addColorStop(0, '#2c3e50'); wallGrad3.addColorStop(0.4, '#1a252c'); wallGrad3.addColorStop(1, '#0a0a0a');
+            ctx.fillStyle = wallGrad3; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
+            const floorGrad3 = ctx.createLinearGradient(0, 450, 0, ZOOM_H);
+            floorGrad3.addColorStop(0, '#3e2723'); floorGrad3.addColorStop(1, '#000000');
+            ctx.fillStyle = floorGrad3; ctx.fillRect(0, 450, ZOOM_W, ZOOM_H - 450);
+            ctx.fillStyle = 'rgba(255, 200, 100, 0.03)'; ctx.beginPath(); ctx.arc(550, 100, 400, 0, Math.PI*2); ctx.fill();
+
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 30;
+            ctx.fillStyle = '#2c2c2c'; ctx.beginPath(); ctx.roundRect(60, 150, 120, 250, 10); ctx.fill();
+            ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.beginPath(); ctx.roundRect(70, 160, 100, 230, 8); ctx.fill();
+            ctx.shadowBlur = 0;
+            if (state.batteryTaken) {
+                ctx.fillStyle = '#888'; ctx.font = '20px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('ЯЧЕЙКА ПУСТА', 120, 280);
+            } else {
+                ctx.shadowColor = 'rgba(255, 200, 0, 0.2)'; ctx.shadowBlur = 20;
+                ctx.fillStyle = '#f1c40f'; ctx.font = '60px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('🔋', 120, 260);
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#fff'; ctx.font = '18px sans-serif';
+                ctx.fillText('Аккумулятор', 120, 320);
+                ctx.fillStyle = '#ff1744'; ctx.font = '16px sans-serif';
+                ctx.fillText('(Закрыто на винты)', 120, 360);
+            }
+            ctx.restore();
+
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 20;
+            ctx.fillStyle = '#0a0a0a'; ctx.fillRect(850, 80, 250, 400);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#555'; ctx.font = '22px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('⬅ ВЕРНУТЬСЯ В ПОДВАЛ', 975, 450);
+            ctx.restore();
+        }
+
+        // ================= 4. БУНКЕР (Уровень 3) =================
+        function drawBunkerHall() {
+            ctx.fillStyle = '#1c1c1c'; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
+            ctx.fillStyle = '#2c2c2c'; ctx.fillRect(0, 0, ZOOM_W, 80);
+            const floorGradB = ctx.createLinearGradient(0, 450, 0, ZOOM_H);
+            floorGradB.addColorStop(0, '#2c2c2c'); floorGradB.addColorStop(1, '#000000');
+            ctx.fillStyle = floorGradB; ctx.fillRect(0, 450, ZOOM_W, ZOOM_H - 450);
+            ctx.fillStyle = 'rgba(255, 200, 100, 0.02)'; ctx.beginPath(); ctx.arc(550, 60, 400, 0, Math.PI*2); ctx.fill();
+
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 30;
+            ctx.fillStyle = '#3e2723'; ctx.beginPath(); ctx.roundRect(720, 100, 160, 300, 10); ctx.fill();
+            ctx.fillStyle = '#2c1a12'; ctx.beginPath(); ctx.roundRect(730, 110, 140, 280, 8); ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 24px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('🚪 ВЫХОД', 800, 240);
+            if (state.finalExitOpened) {
+                ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 20px sans-serif';
+                ctx.fillText('ОТКРЫТО', 800, 280);
+            } else {
+                ctx.fillStyle = '#ff1744'; ctx.font = 'bold 20px sans-serif';
+                ctx.fillText('ТРЕБУЕТСЯ КАРТА 2', 800, 280);
+            }
+            ctx.restore();
+
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 20;
+            ctx.fillStyle = '#2e7d32'; ctx.beginPath(); ctx.roundRect(280, 120, 140, 280, 8); ctx.fill();
+            ctx.fillStyle = '#1b5e20'; ctx.beginPath(); ctx.roundRect(290, 130, 120, 260, 6); ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('🚪 ЛАБОРАТОРИЯ 1', 350, 260);
+            ctx.restore();
+
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 20;
+            ctx.fillStyle = '#1565c0'; ctx.beginPath(); ctx.roundRect(470, 120, 140, 280, 8); ctx.fill();
+            ctx.fillStyle = '#0d47a1'; ctx.beginPath(); ctx.roundRect(480, 130, 120, 260, 6); ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
+            if (state.blueDoorOpened) {
+                ctx.fillStyle = '#00ffcc';
+                ctx.fillText('🚪 ОТКРЫТО', 540, 260);
+            } else if (state.keyCard1) {
+                ctx.fillStyle = '#ffeb3b';
+                ctx.fillText('🚪 КОМНАТА ОТДЫХА', 540, 250);
+                ctx.fillStyle = '#aaa'; ctx.font = '16px sans-serif';
+                ctx.fillText('(Нажмите, чтобы открыть)', 540, 290);
+            } else {
+                ctx.fillStyle = '#fff';
+                ctx.fillText('🚪 КОМНАТА ОТДЫХА', 540, 250);
+                ctx.fillStyle = '#ff1744'; ctx.font = '16px sans-serif';
+                ctx.fillText('(Закрыто)', 540, 290);
+            }
+            ctx.restore();
+        }
+
+        // ================= 5. ЛАБОРАТОРИЯ 1 =================
+        function drawLab1() {
+            const wallGradL1 = ctx.createLinearGradient(0, 0, 0, ZOOM_H);
+            wallGradL1.addColorStop(0, '#607d8b'); wallGradL1.addColorStop(0.5, '#37474f'); wallGradL1.addColorStop(1, '#1a1a1a');
+            ctx.fillStyle = wallGradL1; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
+            const floorGradL1 = ctx.createLinearGradient(0, 450, 0, ZOOM_H);
+            floorGradL1.addColorStop(0, '#455a64'); floorGradL1.addColorStop(1, '#0a0a0a');
+            ctx.fillStyle = floorGradL1; ctx.fillRect(0, 450, ZOOM_W, ZOOM_H - 450);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.02)'; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
+            ctx.fillStyle = 'rgba(255, 200, 100, 0.02)'; ctx.beginPath(); ctx.arc(550, 100, 400, 0, Math.PI*2); ctx.fill();
+
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 30;
+            ctx.fillStyle = '#5d4037'; ctx.beginPath(); ctx.roundRect(400, 380, 300, 60, 8); ctx.fill();
+            ctx.fillStyle = '#3e2723'; ctx.beginPath(); ctx.roundRect(410, 390, 280, 40, 6); ctx.fill();
+            ctx.shadowBlur = 0;
+            if (state.keyCard1) {
+                ctx.fillStyle = '#888'; ctx.font = '20px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('Карта взята', 550, 420);
+            } else {
+                ctx.fillStyle = '#00ff00'; ctx.font = 'bold 24px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('🟩 Ключ-карта 1 уровня', 550, 420);
+            }
+            ctx.restore();
+
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 20;
+            ctx.fillStyle = '#0a0a0a'; ctx.fillRect(880, 80, 200, 400);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#555'; ctx.font = '22px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('⬅ ВЫХОД', 980, 280);
+            ctx.restore();
+        }
+
+        // ================= 6. КОМНАТА ОТДЫХА =================
+        function drawRestRoom() {
+            ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
+            ctx.fillStyle = '#2c2c2c'; ctx.fillRect(0, 0, ZOOM_W, 80);
+            const floorGradR = ctx.createLinearGradient(0, 450, 0, ZOOM_H);
+            floorGradR.addColorStop(0, '#2c2c2c'); floorGradR.addColorStop(1, '#000000');
+            ctx.fillStyle = floorGradR; ctx.fillRect(0, 450, ZOOM_W, ZOOM_H - 450);
+            ctx.fillStyle = 'rgba(255, 200, 100, 0.02)'; ctx.beginPath(); ctx.arc(550, 100, 400, 0, Math.PI*2); ctx.fill();
+
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 30;
+            ctx.fillStyle = '#5d4037'; ctx.beginPath(); ctx.roundRect(400, 380, 300, 60, 8); ctx.fill();
+            ctx.fillStyle = '#3e2723'; ctx.beginPath(); ctx.roundRect(410, 390, 280, 40, 6); ctx.fill();
+            ctx.shadowBlur = 0;
+            if (state.keyCard2 && state.letterTaken) {
+                ctx.fillStyle = '#888'; ctx.font = '20px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('Всё взято', 550, 420);
+            } else {
+                ctx.fillStyle = '#448aff'; ctx.font = 'bold 24px sans-serif'; ctx.textAlign = 'center';
+                let items = [];
+                if (!state.keyCard2) items.push('🟦 Карта 2');
+                if (!state.letterTaken) items.push('📜 Письмо');
+                ctx.fillText(items.join(' & '), 550, 420);
+            }
+            ctx.restore();
+
+            // ЯЩИК СТОЛА (для обычного ключа)
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 20;
+            ctx.fillStyle = '#3e2723'; ctx.beginPath(); ctx.roundRect(300, 380, 70, 50, 4); ctx.fill();
+            ctx.strokeStyle = '#2c1a12'; ctx.lineWidth = 3; ctx.strokeRect(300, 380, 70, 50);
+            if (state.keyUsed) {
+                ctx.fillStyle = '#888'; ctx.font = '16px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('ОТКРЫТ', 335, 405);
+                if (state.secretNoteTaken) {
+                    ctx.fillStyle = '#aaa'; ctx.font = '14px sans-serif';
+                    ctx.fillText('Там была старая карта...', 335, 430);
+                } else {
+                    ctx.fillStyle = '#f1c40f'; ctx.font = '18px sans-serif';
+                    ctx.fillText('🗺️', 335, 405);
+                }
+            } else if (state.keyTaken) {
+                ctx.fillStyle = '#ffeb3b'; ctx.font = '14px sans-serif';
+                ctx.fillText('🔑', 335, 405);
+                ctx.fillStyle = '#aaa'; ctx.font = '12px sans-serif';
+                ctx.fillText('(Используйте ключ)', 335, 425);
+            } else {
+                ctx.fillStyle = '#555'; ctx.font = '12px sans-serif';
+                ctx.fillText('ЗАКРЫТ', 335, 410);
+            }
+            ctx.restore();
+
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 20;
+            ctx.fillStyle = '#0a0a0a'; ctx.fillRect(880, 80, 200, 400);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#555'; ctx.font = '22px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('⬅ ВЫХОД', 980, 280);
+            ctx.restore();
+        }
+
+        // ================= 7. ЗИМНИЙ ЛЕС (Уровень 4) =================
+        function drawWinterForest() {
+            // Небо
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, 350);
+            skyGrad.addColorStop(0, '#2c3e50');
+            skyGrad.addColorStop(0.3, '#4a6a7a');
+            skyGrad.addColorStop(0.8, '#8baec4');
+            skyGrad.addColorStop(1, '#e0f0fa');
+            ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, ZOOM_W, 350);
+
+            // Дальний лес
+            ctx.fillStyle = '#1a2a1a';
+            for(let i=0; i<10; i++) {
+                let x = 20 + i*110;
+                ctx.beginPath(); ctx.moveTo(x, 300); ctx.lineTo(x+30, 120); ctx.lineTo(x+60, 300); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(x-10, 330); ctx.lineTo(x+30, 150); ctx.lineTo(x+70, 330); ctx.fill();
+            }
+
+            // Средний план
+            ctx.fillStyle = '#2a3a2a';
+            ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 15;
+            for(let i=0; i<8; i++) {
+                let x = 40 + i*140;
+                ctx.beginPath(); ctx.moveTo(x, 340); ctx.lineTo(x+45, 180); ctx.lineTo(x+90, 340); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(x, 380); ctx.lineTo(x+45, 220); ctx.lineTo(x+90, 380); ctx.fill();
+            }
+            ctx.shadowBlur = 0;
+
+            // Снег на земле
+            const snowGrad = ctx.createLinearGradient(0, 350, 0, ZOOM_H);
+            snowGrad.addColorStop(0, '#e0e8f0'); snowGrad.addColorStop(0.5, '#c0d0e0');
+            snowGrad.addColorStop(1, '#a0b0c0');
+            ctx.fillStyle = snowGrad; ctx.fillRect(0, 350, ZOOM_W, ZOOM_H - 350);
+
+            // Хижина (слева)
+            ctx.save(); 
+            ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 30;
+            const cabinGrad = ctx.createLinearGradient(100, 280, 280, 460);
+            cabinGrad.addColorStop(0, '#6d4c41'); cabinGrad.addColorStop(0.5, '#5d4037'); cabinGrad.addColorStop(1, '#3e2723');
+            ctx.fillStyle = cabinGrad; ctx.beginPath(); ctx.roundRect(100, 280, 180, 180, 10); ctx.fill();
+            ctx.shadowBlur = 0; 
+
+            // Дверь хижины
+            ctx.fillStyle = '#3e2723'; ctx.fillRect(150, 350, 50, 110);
+            ctx.fillStyle = '#d4af37'; ctx.fillRect(175, 370, 10, 10);
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('🏠 ХИЖИНА', 200, 280);
+
+            // Окна хижины
+            ctx.fillStyle = '#ffb300'; ctx.shadowColor = 'rgba(255, 200, 50, 0.3)'; ctx.shadowBlur = 30;
+            ctx.fillRect(120, 310, 40, 40);
+            ctx.fillRect(220, 310, 40, 40);
+            ctx.shadowBlur = 0;
+            ctx.restore();
+
+            // Справа — озеро
+            ctx.fillStyle = 'rgba(70, 130, 180, 0.6)'; ctx.beginPath(); ctx.ellipse(900, 450, 150, 80, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = 'rgba(200, 230, 255, 0.3)'; ctx.beginPath(); ctx.ellipse(900, 440, 130, 60, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('🌊 ОЗЕРО', 900, 400);
+
+            // Тропа прямо (переход на поляну)
+            ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.font = 'bold 22px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('➡ ТРОПА ВПЕРЕД', 580, 350);
+
+            ctx.fillStyle = '#f0f0f0'; ctx.font = 'bold 28px Georgia'; ctx.textAlign = 'center';
+            ctx.fillText('Вы в зимнем лесу.', 550, 80);
+            ctx.fillStyle = '#e0e0e0'; ctx.font = '22px Georgia'; 
+            ctx.fillText('Слева хижина. Прямо — таинственная тропа.', 550, 120);
+
+            // Снег
+            for(let i=0; i<80; i++) {
+                let sx = (i * 37 + Date.now()/30) % ZOOM_W;
+                let sy = (i * 43 + Date.now()/60) % ZOOM_H;
+                ctx.fillStyle = `rgba(255,255,255,${0.3 + Math.random()*0.5})`;
+                ctx.beginPath(); ctx.arc(sx, sy, 2 + Math.random()*4, 0, Math.PI*2); ctx.fill();
+            }
+        }
+
+        // ================= 8. ГЛУБОКАЯ ПОЛЯНА (Уровень 5) =================
+        function drawDeepGlade() {
+            // Небо зимнее
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, 400);
+            skyGrad.addColorStop(0, '#1a252c'); skyGrad.addColorStop(0.5, '#2c3e50'); skyGrad.addColorStop(1, '#8baec4');
+            ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, ZOOM_W, 400);
+
+            // Дальний лес
+            ctx.fillStyle = '#1a2a1a'; ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 20;
+            for(let i=0; i<12; i++) {
+                let x = 20 + i*100;
+                ctx.beginPath(); ctx.moveTo(x, 380); ctx.lineTo(x+30, 150); ctx.lineTo(x+60, 380); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(x-10, 400); ctx.lineTo(x+30, 200); ctx.lineTo(x+70, 400); ctx.fill();
+            }
+            ctx.shadowBlur = 0;
+
+            // Снег
+            const snowGrad = ctx.createLinearGradient(0, 380, 0, ZOOM_H);
+            snowGrad.addColorStop(0, '#e0e8f0'); snowGrad.addColorStop(1, '#c0d0e0');
+            ctx.fillStyle = snowGrad; ctx.fillRect(0, 380, ZOOM_W, ZOOM_H - 380);
+
+            // Куча хвороста (слева)
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 20;
+            ctx.fillStyle = '#4e342e'; 
+            ctx.beginPath(); ctx.ellipse(150, 440, 70, 35, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#3e2723';
+            for(let i=0; i<15; i++) {
+                ctx.beginPath(); ctx.ellipse(150 + (Math.random()-0.5)*60, 430 + Math.random()*20, 10 + Math.random()*15, 4, 0, 0, Math.PI*2); ctx.fill();
+            }
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#f0f0f0'; ctx.font = '18px Georgia'; ctx.textAlign = 'center';
+            ctx.fillText('🌲 ХВОРОСТ', 150, 400);
+
+            // Палка на земле
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 15;
+            ctx.fillStyle = '#5d4037'; 
+            ctx.beginPath(); ctx.roundRect(400, 460, 80, 15, 5); ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#f0f0f0'; ctx.font = '18px Georgia'; ctx.textAlign = 'center';
+            ctx.fillText('🪵 ПАЛКА', 440, 440);
+            ctx.restore();
+
+            // Замёрзшая дверь бункера (в центре)
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 30;
+            ctx.fillStyle = '#3e2723'; ctx.beginPath(); ctx.roundRect(450, 150, 200, 280, 20); ctx.fill();
+            ctx.fillStyle = '#2c1a12'; ctx.beginPath(); ctx.roundRect(460, 160, 180, 260, 15); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            if (state.bunkerUnlocked) {
+                ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 28px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('🚪 ОТТАЯЛО!', 550, 280);
+                ctx.fillStyle = '#00ffcc'; ctx.font = '20px sans-serif';
+                ctx.fillText('(Вход свободен)', 550, 330);
+            } else {
+                // Лёд на двери
+                ctx.fillStyle = 'rgba(180, 230, 255, 0.4)'; ctx.beginPath(); ctx.roundRect(460, 160, 180, 260, 15); ctx.fill();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'; ctx.fillRect(470, 200, 160, 30);
+                ctx.fillRect(490, 250, 120, 20);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 26px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('🧊 ЗАМЁРЗШИЙ ВХОД', 550, 280);
+                ctx.fillStyle = '#aaa'; ctx.font = '18px sans-serif';
+                ctx.fillText('(Нужен огонь!)', 550, 320);
+            }
+            ctx.restore();
+
+            // Падающий снег
+            for(let i=0; i<100; i++) {
+                let sx = (i * 37 + Date.now()/30) % ZOOM_W;
+                let sy = (i * 43 + Date.now()/60) % ZOOM_H;
+                ctx.fillStyle = `rgba(255,255,255,${0.2 + Math.random()*0.4})`;
+                ctx.beginPath(); ctx.arc(sx, sy, 2 + Math.random()*5, 0, Math.PI*2); ctx.fill();
+            }
+        }
+
+        // ================= 9. ИНТЕРЬЕР ХИЖИНЫ (Уровень 6) =================
+        function drawCabinInterior() {
+            // Теплый фон от камина (освещает всю комнату)
+            const cabinGlow = ctx.createRadialGradient(140, 380, 50, 550, 310, 600);
+            cabinGlow.addColorStop(0, 'rgba(255, 150, 50, 0.15)');
+            cabinGlow.addColorStop(0.5, 'rgba(255, 150, 50, 0.05)');
+            cabinGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = cabinGlow; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
+
+            // Стены (бревенчатые)
+            const wallGradC = ctx.createLinearGradient(0, 0, 0, ZOOM_H);
+            wallGradC.addColorStop(0, '#6d4c41'); wallGradC.addColorStop(0.4, '#5d4037'); wallGradC.addColorStop(1, '#3e2723');
+            ctx.fillStyle = wallGradC; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
+
+            // Бревенчатые линии
+            ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 4;
+            for(let y=50; y<ZOOM_H; y+=60) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(ZOOM_W, y); ctx.stroke();
+            }
+
+            // Пол (деревянный)
+            const floorGradC = ctx.createLinearGradient(0, 450, 0, ZOOM_H);
+            floorGradC.addColorStop(0, '#3e2723'); floorGradC.addColorStop(1, '#1a1a1a');
+            ctx.fillStyle = floorGradC; ctx.fillRect(0, 450, ZOOM_W, ZOOM_H - 450);
+            ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.lineWidth = 2;
+            for(let x=0; x<ZOOM_W; x+=80) {
+                ctx.beginPath(); ctx.moveTo(x, 450); ctx.lineTo(x, ZOOM_H); ctx.stroke();
+            }
+
+            // Коврик перед камином (объемный)
+            ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 20;
+            ctx.fillStyle = '#4a2a1a'; 
+            ctx.beginPath(); ctx.ellipse(140, 460, 80, 35, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#5d4037';
+            ctx.beginPath(); ctx.ellipse(140, 460, 60, 25, 0, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Камин/Печь (с реалистичным огнем)
+            ctx.shadowColor = 'rgba(255, 150, 50, 0.4)'; ctx.shadowBlur = 50;
+            ctx.fillStyle = '#2c1a12'; ctx.beginPath(); ctx.roundRect(60, 250, 160, 200, 10); ctx.fill();
+            ctx.fillStyle = '#1a0f0a'; ctx.beginPath(); ctx.roundRect(70, 260, 140, 180, 8); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Пламя
+            ctx.shadowColor = 'rgba(255, 150, 0, 0.6)'; ctx.shadowBlur = 50;
+            ctx.fillStyle = '#ff5722'; ctx.beginPath(); ctx.ellipse(140, 380, 40, 60, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ff9800'; ctx.beginPath(); ctx.ellipse(140, 370, 30, 50, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffeb3b'; ctx.beginPath(); ctx.ellipse(140, 360, 20, 40, 0, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Дрова
+            ctx.fillStyle = '#4e342e'; ctx.fillRect(110, 420, 60, 15);
+            ctx.fillRect(120, 430, 40, 15);
+            ctx.fillStyle = '#3e2723'; ctx.fillRect(130, 440, 20, 15);
+
+            // КРОВАТЬ (Справа)
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 30;
+            ctx.fillStyle = '#4e342e'; ctx.beginPath(); ctx.roundRect(700, 360, 120, 80, 8); ctx.fill();
+            ctx.fillStyle = '#5d4037'; ctx.beginPath(); ctx.roundRect(705, 365, 110, 70, 6); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(720, 385, 25, 15, -0.2, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#1a237e'; ctx.beginPath(); ctx.roundRect(745, 385, 50, 20, 6); ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.restore();
+
+            // Шкаф (слева)
+            ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 25;
+            ctx.fillStyle = '#4e342e'; ctx.fillRect(30, 150, 80, 200);
+            ctx.fillStyle = '#3e2723'; ctx.fillRect(20, 140, 100, 10);
+            ctx.fillStyle = '#5d4037'; ctx.beginPath(); ctx.roundRect(110, 160, 40, 160, 4); ctx.fill();
+            ctx.fillStyle = '#d4af37'; ctx.fillRect(120, 200, 5, 30);
+            ctx.fillStyle = '#2c3e50'; ctx.fillRect(45, 170, 50, 80);
+            ctx.fillStyle = '#8d6e63'; ctx.fillRect(55, 260, 30, 80);
+            ctx.shadowBlur = 0;
+
+            // Вешалка у двери
+            ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 15;
+            ctx.fillStyle = '#3e2723'; ctx.fillRect(280, 200, 10, 80);
+            ctx.fillStyle = '#2c1a12'; ctx.fillRect(270, 210, 30, 8);
+            ctx.fillRect(275, 240, 30, 8);
+            ctx.fillRect(275, 270, 30, 8);
+            ctx.fillStyle = '#1a252c'; ctx.beginPath(); ctx.ellipse(285, 220, 20, 30, 0, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Занавески на окне
+            ctx.fillStyle = '#5d4037'; ctx.fillRect(800, 100, 30, 200);
+            ctx.fillRect(970, 100, 30, 200);
+            ctx.fillStyle = 'rgba(100, 70, 50, 0.4)'; ctx.fillRect(830, 100, 140, 200);
+
+            // Полка с книгами
+            ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 15;
+            ctx.fillStyle = '#4e342e'; ctx.fillRect(350, 120, 180, 15);
+            ctx.fillStyle = '#3e2723'; ctx.fillRect(360, 115, 10, 20);
+            ctx.fillRect(510, 115, 10, 20);
+            ctx.fillStyle = '#8d6e63'; ctx.fillRect(370, 90, 15, 30);
+            ctx.fillStyle = '#c62828'; ctx.fillRect(390, 85, 20, 35);
+            ctx.fillStyle = '#1565c0'; ctx.fillRect(415, 95, 12, 25);
+            ctx.fillStyle = '#2e7d32'; ctx.fillRect(432, 80, 18, 40);
+            ctx.fillStyle = '#e65100'; ctx.fillRect(455, 90, 15, 30);
+            ctx.fillStyle = '#4a148c'; ctx.fillRect(475, 85, 20, 35);
+            ctx.shadowBlur = 0;
+
+            // Стол (центр)
+            ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 30;
+            ctx.fillStyle = '#5d4037'; ctx.beginPath(); ctx.roundRect(400, 380, 300, 20, 6); ctx.fill();
+            ctx.fillStyle = '#3e2723'; ctx.beginPath(); ctx.roundRect(410, 390, 280, 40, 6); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Дневник на столе
+            ctx.fillStyle = '#8d6e63'; ctx.beginPath(); ctx.roundRect(480, 360, 140, 20, 3); ctx.fill();
+            ctx.fillStyle = '#d7ccc8'; ctx.fillRect(485, 362, 130, 16);
+            ctx.fillStyle = '#4e342e'; ctx.font = '12px Georgia'; ctx.textAlign = 'center';
+            ctx.fillText('Дневник лесника', 550, 374);
+
+            // Лампа на столе (светит)
+            ctx.shadowColor = 'rgba(255, 200, 50, 0.4)'; ctx.shadowBlur = 40;
+            ctx.fillStyle = '#bdbdbd'; ctx.fillRect(620, 330, 15, 50);
+            ctx.fillStyle = '#f5f5f5'; ctx.fillRect(615, 315, 25, 15);
+            ctx.fillStyle = '#ffb300'; ctx.beginPath(); ctx.arc(627, 310, 12, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // ВЫХОД ИЗ ХИЖИНЫ (справа, дверь)
+            ctx.fillStyle = '#3e2723'; ctx.beginPath(); ctx.roundRect(790, 100, 200, 400, 10); ctx.fill();
+            ctx.fillStyle = '#2c1a12'; ctx.beginPath(); ctx.roundRect(800, 110, 180, 380, 8); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('🚪 ВЫХОД', 890, 300);
+            ctx.fillStyle = '#888'; ctx.font = '14px sans-serif';
+            ctx.fillText('(Вернуться в лес)', 890, 340);
+
+            // Текст описания
+            ctx.fillStyle = '#f0f0f0'; ctx.font = 'bold 24px Georgia'; ctx.textAlign = 'center';
+            ctx.fillText('Внутри тепло и уютно...', 550, 50);
+            ctx.fillStyle = '#ccc'; ctx.font = '18px Georgia';
+            ctx.fillText('Похоже, кто-то жил здесь совсем недавно.', 550, 90);
+            ctx.fillStyle = '#aaa'; ctx.font = '16px Georgia';
+            ctx.fillText('Нажмите на дневник, чтобы прочесть тайну леса.', 550, 130);
+        }
+
+        // ================= ЗУМ-ПРЕДМЕТЫ =================
+        function drawZoomItems() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.92)'; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.shadowBlur = 50; ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            
+            if (zoomTarget === 'bed') {
+                ctx.shadowColor = 'rgba(0,100,255,0.2)'; ctx.shadowBlur = 60;
+                ctx.font = '160px sans-serif'; ctx.fillText('🛏️', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                ctx.fillText('Обнаружен телефон 📱', 550, 380);
+            } else if (zoomTarget === 'desk') {
+                ctx.shadowColor = 'rgba(0,150,255,0.2)'; ctx.shadowBlur = 60;
+                ctx.font = '160px sans-serif'; ctx.fillText('🖥️', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                ctx.fillText('Под клавиатурой ключ 🗝️', 550, 380);
+            } else if (zoomTarget === 'closet') {
+                ctx.shadowColor = 'rgba(0,0,0,0.2)'; ctx.shadowBlur = 60;
+                ctx.font = '160px sans-serif'; ctx.fillText('🚪', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#ccc'; ctx.shadowBlur = 0;
+                if (state.phoneTaken && !state.boxTaken) {
+                    ctx.fillText('Обнаружена коробка 📦', 550, 380);
+                } else if (state.boxTaken) {
+                    ctx.fillText('Шкаф пуст', 550, 380);
+                } else {
+                    ctx.fillText('Темно... Нужен свет 🔦', 550, 380);
+                }
+            } else if (zoomTarget === 'fridge') {
+                ctx.shadowColor = 'rgba(0,200,255,0.1)'; ctx.shadowBlur = 60;
+                ctx.font = '160px sans-serif'; ctx.fillText('🧊', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#ccc'; ctx.shadowBlur = 0;
+                if (state.fridgeMoved) ctx.fillText('Холодильник сдвинут', 550, 380);
+                else ctx.fillText('Промышленный холодильник', 550, 380);
+            } else if (zoomTarget === 'hatch') {
+                ctx.shadowColor = 'rgba(0,255,204,0.2)'; ctx.shadowBlur = 60;
+                ctx.font = '160px sans-serif'; ctx.fillText('⬇️', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                ctx.fillText('Подземный люк', 550, 380);
+            } else if (zoomTarget === 'door') {
+                ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 40;
+                ctx.font = '80px sans-serif'; ctx.fillText('🚪', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#ccc'; ctx.shadowBlur = 0;
+                if (state.doorOpened) ctx.fillText('Дверь открыта!', 550, 380);
+                else ctx.fillText('Герметичная дверь бункера', 550, 380);
+            } else if (zoomTarget === 'passage') {
+                ctx.font = '80px sans-serif'; ctx.fillText('➡️', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                ctx.fillText('Проход в генераторную', 550, 380);
+            } else if (zoomTarget === 'exit') {
+                ctx.font = '80px sans-serif'; ctx.fillText('⬅️', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                ctx.fillText('Вернуться в подвал', 550, 380);
+            } else if (zoomTarget === 'lever') {
+                ctx.font = '80px sans-serif'; ctx.fillText('🔧', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                if (state.powerOn) {
+                    ctx.fillText('Питание подано!', 550, 380);
+                } else {
+                    ctx.fillText('Рычаг без питания. Нужен аккумулятор.', 550, 380);
+                }
+            } else if (zoomTarget === 'cell') {
+                ctx.font = '80px sans-serif'; ctx.fillText('🔋', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                if (state.batteryTaken) {
+                    ctx.fillText('Ячейка открыта. Аккумулятор у вас.', 550, 380);
+                } else {
+                    ctx.fillText('Ячейка с аккумулятором. Нужна отвертка.', 550, 380);
+                }
+            } else if (zoomTarget === 'greenDoor') {
+                ctx.font = '80px sans-serif'; ctx.fillText('🚪', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                ctx.fillText('Зелёная дверь. Вход в Лабораторию 1.', 550, 380);
+            } else if (zoomTarget === 'blueDoor') {
+                ctx.font = '80px sans-serif'; ctx.fillText('🚪', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                if (state.blueDoorOpened) {
+                    ctx.fillText('Голубая дверь открыта.', 550, 380);
+                } else if (state.keyCard1) {
+                    ctx.fillText('Голубая дверь. Используйте карту.', 550, 380);
+                } else {
+                    ctx.fillText('Голубая дверь. Нужна карта 1.', 550, 380);
+                }
+            } else if (zoomTarget === 'exitDoor') {
+                ctx.font = '80px sans-serif'; ctx.fillText('🚪', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                if (state.finalExitOpened) {
+                    ctx.fillText('Выход открыт!', 550, 380);
+                } else if (state.keyCard2) {
+                    ctx.fillText('Выход. Используйте карту 2.', 550, 380);
+                } else {
+                    ctx.fillText('Выход. Нужна карта 2.', 550, 380);
+                }
+            } else if (zoomTarget === 'table1') {
+                ctx.font = '80px sans-serif'; ctx.fillText('📦', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                if (state.keyCard1) {
+                    ctx.fillText('Карта 1 уже у вас.', 550, 380);
+                } else {
+                    ctx.fillText('Зелёная карта 1 уровня 💳', 550, 380);
+                }
+            } else if (zoomTarget === 'table2') {
+                ctx.font = '80px sans-serif'; ctx.fillText('📜', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                let items = [];
+                if (!state.keyCard2) items.push('Голубая карта 2');
+                if (!state.letterTaken) items.push('Письмо');
+                ctx.fillText(items.join(' & '), 550, 380);
+            } else if (zoomTarget === 'backExit') {
+                ctx.font = '80px sans-serif'; ctx.fillText('⬅️', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                ctx.fillText('Вернуться в коридор', 550, 380);
+            } else if (zoomTarget === 'cabinDoor') {
+                ctx.font = '80px sans-serif'; ctx.fillText('🏠', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                ctx.fillText('Заброшенная хижина в лесу...', 550, 380);
+            } else if (zoomTarget === 'forestPath') {
+                ctx.font = '80px sans-serif'; ctx.fillText('➡️', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                ctx.fillText('Тропа в неизвестность...', 550, 380);
+            } else if (zoomTarget === 'lake') {
+                ctx.font = '80px sans-serif'; ctx.fillText('🌊', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                ctx.fillText('Замёрзшее озеро. Ничего интересного.', 550, 380);
+            } else if (zoomTarget === 'diary') {
+                ctx.font = '80px sans-serif'; ctx.fillText('📖', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                ctx.fillText('Дневник лесника: "Ты не в своём времени..."', 550, 380);
+            } else if (zoomTarget === 'drawer') {
+                ctx.font = '80px sans-serif'; ctx.fillText('📦', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                if (state.keyUsed && state.secretNoteTaken) {
+                    ctx.fillText('В ящике была старая карта. Вы её взяли.', 550, 380);
+                } else if (state.keyUsed) {
+                    ctx.fillText('Ящик открыт. Возьмите карту.', 550, 380);
+                } else if (state.keyTaken) {
+                    ctx.fillText('Ящик заперт. Используйте ключ.', 550, 380);
+                } else {
+                    ctx.fillText('Запертый ящик.', 550, 380);
+                }
+            } else if (zoomTarget === 'fireplace') {
+                ctx.font = '80px sans-serif'; ctx.fillText('🔥', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                if (state.finalSecretFound) {
+                    ctx.fillText('Тайник уже найден. Вы в безопасности.', 550, 380);
+                } else if (state.secretNoteTaken) {
+                    ctx.fillText('Используйте старую карту у камина.', 550, 380);
+                } else {
+                    ctx.fillText('Старый камин. В нём что-то есть...', 550, 380);
+                }
+            } else if (zoomTarget === 'twigs') {
+                ctx.font = '80px sans-serif'; ctx.fillText('🌲', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                if (state.fireStarted) {
+                    ctx.fillText('Костёр горит!', 550, 380);
+                } else if (state.woodTaken) {
+                    ctx.fillText('Хворост собран (можно разжечь палкой)', 550, 380);
+                } else {
+                    ctx.fillText('Куча хвороста.', 550, 380);
+                }
+            } else if (zoomTarget === 'stick') {
+                ctx.font = '80px sans-serif'; ctx.fillText('🪵', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                if (state.stickTaken) {
+                    ctx.fillText('Палка уже у вас.', 550, 380);
+                } else {
+                    ctx.fillText('Длинная палка на земле.', 550, 380);
+                }
+            } else if (zoomTarget === 'bunkerDoor') {
+                ctx.font = '80px sans-serif'; ctx.fillText('🚪', 550, 260);
+                ctx.font = '24px Georgia'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+                if (state.bunkerUnlocked) {
+                    ctx.fillText('Дверь оттаяла! Вы входите!', 550, 380);
+                } else {
+                    ctx.fillText('Замёрзшая дверь бункера. Нужен огонь.', 550, 380);
+                }
+            }
+        }
+
+        // ================= ЛОГИКА =================
+        function startGame() {
+            lobbyLayer.classList.add('hidden');
+            uiLayer.style.display = 'block';
+            gameStarted = true;
+            level = 1;
+            updateZonesForLevel();
+            drawScene();
+            renderInventory();
+        }
+
+        function enterLevel2() {
+            level = 2;
+            currentZone = 'basement';
+            descEl.innerText = "Вы спустились в подвал. Оглядитесь.";
+            viewMode = 'main';
+            backBtn.style.display = 'none';
+            updateZonesForLevel();
+            drawScene();
+            renderInventory();
+        }
+
+        function enterLevel3() {
+            level = 3;
+            currentZone = 'bunker_hall';
+            descEl.innerText = "Вы вошли в бункер.";
+            viewMode = 'main';
+            backBtn.style.display = 'none';
+            updateZonesForLevel();
+            drawScene();
+            renderInventory();
+        }
+
+        function enterWinterForest() {
+            level = 4;
+            currentZone = 'forest';
+            descEl.innerText = "Вы выбрались в зимний лес.";
+            viewMode = 'main';
+            backBtn.style.display = 'none';
+            updateZonesForLevel();
+            drawScene();
+            renderInventory();
+        }
+
+        function enterDeepGlade() {
+            level = 5;
+            currentZone = 'glade';
+            descEl.innerText = "Глубокая поляна. В центре — замёрзший бункер.";
+            viewMode = 'main';
+            backBtn.style.display = 'none';
+            updateZonesForLevel();
+            drawScene();
+            renderInventory();
+        }
+
+        function enterCabinInterior() {
+            level = 6;
+            currentZone = 'interior';
+            descEl.innerText = "Вы внутри хижины. Тепло и уютно...";
+            viewMode = 'main';
+            backBtn.style.display = 'none';
+            updateZonesForLevel();
+            drawScene();
+            renderInventory();
+        }
+
+        function finishGame() {
+            winScreen.style.display = 'flex';
+        }
+
+        function closeDiary() {
+            diaryOverlay.classList.remove('active');
+            if (level === 6) {
+                descEl.innerText = "Вы внутри хижины. Тепло и уютно...";
+            }
+        }
+
+        function renderInventory() {
+            invEl.innerHTML = '';
+            if (inventory.length === 0) {
+                let empty = document.createElement('div'); empty.className = 'inv-slot empty'; empty.innerText = '—';
+                invEl.appendChild(empty);
+            } else {
+                inventory.forEach(item => {
+                    let slot = document.createElement('div'); slot.className = 'inv-slot';
+                    slot.innerText = itemIcons[item] || '❓';
+                    slot.onclick = () => {
+                        if (gameWin) return;
+                        document.querySelectorAll('.inv-slot').forEach(el => el.classList.remove('selected'));
+                        slot.classList.add('selected');
+                        selectedItem = item;
+                        descEl.innerText = `Выбран: ${item}`;
+                    };
+                    invEl.appendChild(slot);
+                });
+            }
+        }
+
+        function closeLetter() {
+            letterOverlay.classList.remove('active');
+        }
+
+        // ================= УНИВЕРСАЛЬНЫЙ ОБРАБОТЧИК КЛИКОВ (Исправленный зум) =================
+        canvas.addEventListener('click', (e) => {
+            if (!gameStarted || gameWin) return;
+
+            const pos = getCanvasCoords(e);
+            const x = pos.x;
+            const y = pos.y;
+
+            // 1. ЕСЛИ МЫ В ЗУМЕ
+            if (viewMode === 'zoom') {
+                // Логика действий внутри зума. После любого действия МГНОВЕННО выходим из зума.
+                if (zoomTarget === 'bed' && !state.phoneTaken) {
+                    inventory.push('телефон'); state.phoneTaken = true; renderInventory();
+                    descEl.innerText = "Вы взяли телефон 📱";
+                } else if (zoomTarget === 'desk' && !state.keyTaken) {
+                    inventory.push('ключ'); state.keyTaken = true; renderInventory();
+                    descEl.innerText = "Вы взяли ключ 🗝️";
+                } else if (zoomTarget === 'closet' && state.phoneTaken && !state.boxTaken) {
+                    inventory.push('коробка'); state.boxTaken = true; renderInventory();
+                    descEl.innerText = "Вы нашли коробку 📦";
+                } else if (zoomTarget === 'fridge' && !state.fridgeMoved) {
+                    state.fridgeMoved = true; drawScene();
+                    descEl.innerText = "Вы сдвинули холодильник!";
+                } else if (zoomTarget === 'hatch' && state.hatchOpened) {
+                    enterLevel2();
+                    viewMode = 'main'; backBtn.style.display = 'none'; drawScene(); return;
+                } else if (zoomTarget === 'twigs' && !state.woodTaken) {
+                    inventory.push('хворост'); state.woodTaken = true; renderInventory();
+                    descEl.innerText = "Вы собрали хворост!";
+                } else if (zoomTarget === 'stick' && !state.stickTaken) {
+                    inventory.push('палка'); state.stickTaken = true; renderInventory();
+                    descEl.innerText = "Вы взяли палку!";
+                } else if (zoomTarget === 'bunkerDoor') {
+                    if (state.bunkerUnlocked) {
+                        // ВХОД ВО ВТОРОЙ БУНКЕР -> ПОБЕДА!
+                        viewMode = 'main'; backBtn.style.display = 'none'; drawScene();
+                        gameWin = true;
+                        setTimeout(() => winScreen.style.display = 'flex', 500);
+                        return;
+                    } else if (state.fireStarted) {
+                        descEl.innerText = "Костёр уже разожжён. Дверь оттаивает!";
+                        state.bunkerUnlocked = true;
+                    } else {
+                        descEl.innerText = "Дверь покрыта льдом. Нужен огонь.";
+                    }
+                } else if (zoomTarget === 'door') {
+                    if (state.doorOpened) {
+                        enterLevel3();
+                        viewMode = 'main'; backBtn.style.display = 'none'; drawScene(); return;
+                    } else if (state.powerOn) {
+                        state.doorOpened = true; drawScene();
+                        descEl.innerText = "Дверь открыта! Вы вошли в бункер!";
+                        enterLevel3();
+                        viewMode = 'main'; backBtn.style.display = 'none'; drawScene(); return;
+                    } else {
+                        descEl.innerText = "Дверь заперта. Нужно подать питание.";
+                    }
+                } else if (zoomTarget === 'lever' && !state.powerOn && selectedItem === 'аккумулятор') {
+                    state.powerOn = true;
+                    inventory = inventory.filter(i => i !== 'аккумулятор');
+                    renderInventory();
+                    descEl.innerText = "Питание подано! Теперь можно открыть дверь.";
+                } else if (zoomTarget === 'lever') {
+                    descEl.innerText = "Рычаг. Нужен аккумулятор.";
+                } else if (zoomTarget === 'cell' && !state.batteryTaken && selectedItem === 'отвертка') {
+                    state.batteryTaken = true;
+                    inventory.push('аккумулятор');
+                    renderInventory();
+                    descEl.innerText = "Ячейка открыта! Вы взяли аккумулятор 🔋";
+                } else if (zoomTarget === 'cell') {
+                    descEl.innerText = "Ячейка закрыта. Нужна отвертка.";
+                } else if (zoomTarget === 'diary') {
+                    // Дневник открывается отдельно
+                } else if (zoomTarget === 'backExit') {
+                    enterWinterForest();
+                } else if (zoomTarget === 'exitDoor' && !state.finalExitOpened && selectedItem === 'голубая карта') {
+                    state.finalExitOpened = true;
+                    inventory = inventory.filter(i => i !== 'голубая карта');
+                    renderInventory();
+                    descEl.innerText = "Выход открыт! Голубая карта использована.";
+                } else if (zoomTarget === 'exitDoor' && state.finalExitOpened) {
+                    enterWinterForest();
+                } else if (zoomTarget === 'blueDoor' && !state.blueDoorOpened && selectedItem === 'зелёная карта') {
+                    state.blueDoorOpened = true;
+                    inventory = inventory.filter(i => i !== 'зелёная карта');
+                    renderInventory();
+                    descEl.innerText = "Голубая дверь открыта! Зелёная карта использована.";
+                } else if (zoomTarget === 'blueDoor') {
+                    descEl.innerText = "Нужна зелёная карта.";
+                } else if (zoomTarget === 'table1' && !state.keyCard1) {
+                    inventory.push('зелёная карта'); state.keyCard1 = true; renderInventory();
+                    descEl.innerText = "Вы взяли зелёную карту 🟩";
+                } else if (zoomTarget === 'table2' && !state.keyCard2) {
+                    inventory.push('голубая карта'); state.keyCard2 = true; renderInventory();
+                    descEl.innerText = "Вы взяли голубую карту 🟦";
+                } else if (zoomTarget === 'drawer' && !state.keyUsed && selectedItem === 'ключ') {
+                    state.keyUsed = true;
+                    inventory = inventory.filter(i => i !== 'ключ');
+                    renderInventory();
+                    descEl.innerText = "Ключ подошёл! Ящик открыт.";
+                } else if (zoomTarget === 'drawer') {
+                    descEl.innerText = "Ящик заперт. Нужен ключ.";
+                }
+
+                // ВСЕГДА выходим из зума после любого действия (кроме переходов)
+                viewMode = 'main'; backBtn.style.display = 'none'; drawScene(); return;
+            }
+
+            // 2. ЕСЛИ МЫ В ОБЫЧНОМ РЕЖИМЕ (переход в зум)
+            let clickedZone = null;
+            for (let [key, z] of Object.entries(zones)) {
+                if (key === 'hatch' && !state.fridgeMoved) continue;
+                if (key === 'door' && !state.powerOn) continue;
+                if (x >= z.x && x <= z.x + z.w && y >= z.y && y <= z.y + z.h) {
+                    clickedZone = key; break;
+                }
+            }
+
+            if (!clickedZone) {
+                // Клик в пустоту
+                if (selectedItem === 'коробка' && !state.screwdriverTaken && level === 1) {
+                    inventory = inventory.filter(i => i !== 'коробка');
+                    inventory.push('отвертка');
+                    state.screwdriverTaken = true;
+                    renderInventory(); selectedItem = null;
+                    document.querySelectorAll('.inv-slot').forEach(el => el.classList.remove('selected'));
+                    descEl.innerText = "Найдена отвертка 🪛"; return;
+                }
+                document.querySelectorAll('.inv-slot').forEach(el => el.classList.remove('selected'));
+                selectedItem = null; return;
+            }
+
+            // Если кликнули на интерактивный предмет -> ВХОДИМ В ЗУМ
+            viewMode = 'zoom'; zoomTarget = clickedZone; backBtn.style.display = 'block'; drawScene();
+        });
+
+        // ================= ОТДЕЛЬНАЯ ЛОГИКА ДЛЯ РАЗЖИГАНИЯ КОСТРА =================
+        // Это срабатывает, когда игрок выбрал палку и кликает по хворосту в зме
+        document.addEventListener('click', function(e) {
+            if (!gameStarted || gameWin || level !== 5 || currentZone !== 'glade') return;
+            if (viewMode !== 'zoom' || zoomTarget !== 'twigs') return;
+
+            if (selectedItem === 'палка') {
+                
+                if (!state.woodTaken) {
+                    descEl.innerText = "Сначала соберите хворост!";
+                    return;
+                }
+                if (state.fireStarted) {
+                    descEl.innerText = "Костёр уже горит!";
+                    return;
+                }
+
+                state.fireClicks++;
+                descEl.innerText = `Разжигаем костёр... (${state.fireClicks}/3)`;
+                
+                if (state.fireClicks === 1) {
+                    drawScene();
+                } else if (state.fireClicks === 2) {
+                    drawScene();
+                } else if (state.fireClicks >= 3) {
+                    state.fireStarted = true;
+                    descEl.innerText = "Костёр разожжён! Лёд на двери тает!";
+                    drawScene();
+                    // Автоматически разблокируем дверь через 2 секунды
+                    setTimeout(() => {
+                        state.bunkerUnlocked = true;
+                        descEl.innerText = "Дверь оттаяла! Можно войти!";
+                        drawScene();
+                    }, 2000);
+                }
+                document.querySelectorAll('.inv-slot').forEach(el => el.classList.remove('selected'));
+                selectedItem = null;
+                renderInventory();
+                return;
+            }
+        });
+
+        // ================= КНОПКА НАЗАД =================
+        function goBack() {
+            viewMode = 'main';
+            backBtn.style.display = 'none';
+            drawScene();
+            descEl.innerText = "Осмотритесь вокруг...";
+        }
+
+        // ========== ЗАПУСК ==========
+        setTimeout(() => {
+            loading.classList.add('hidden');
+            resizeCanvas();
+            drawScene();
+        }, 1000);
+
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+                if (r > w/2) r = w/2; if (r > h/2) r = h/2;
+                this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r);
+                this.arcTo(x + w, y + h, x, y + h, r);
+                this.arcTo(x, y + h, x, y, r);
+                this.arcTo(x, y, x + w, y, r); return this;
+            };
+        }
+    </script>
+</body>
+</html>
