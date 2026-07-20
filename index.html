@@ -7,7 +7,11 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#000000">
-  <title>Аномалия: Финал · Реалистичная</title>
+  <meta name="description" content="Аномалия: Финал - атмосферная игра-квест в зимнем лесу">
+  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%D0%90%D0%BD%D0%BE%D0%BC%D0%B0%D0%BB%D0%B8%D1%8F%3A%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BB%22%2C%22short_name%22%3A%22%D0%90%D0%BD%D0%BE%D0%BC%D0%B0%D0%BB%D0%B8%D1%8F%22%2C%22description%22%3A%22%D0%90%D1%82%D0%BC%D0%BE%D1%81%D1%84%D0%B5%D1%80%D0%BD%D0%B0%D1%8F%20%D0%B8%D0%B3%D1%80%D0%B0-%D0%BA%D0%B2%D0%B5%D1%81%D1%82%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22fullscreen%22%2C%22orientation%22%3A%22landscape%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20192%20192'%3E%253Crect%20width%3D'192'%20height%3D'192'%20fill%3D'%23000'%2F%3E%253Ctext%20x%3D'96'%20y%3D'110'%20font-size%3D'80'%20text-anchor%3D'middle'%20fill%3D'%23e0a800'%3E%E2%9A%A1%3C%2Ftext%3E%253C%2Fsvg%3E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%2C%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20512%20512'%3E%253Crect%20width%3D'512'%20height%3D'512'%20fill%3D'%23000'%2F%3E%253Ctext%20x%3D'256'%20y%3D'290'%20font-size%3D'200'%20text-anchor%3D'middle'%20fill%3D'%23e0a800'%3E%E2%9A%A1%3C%2Ftext%3E%253C%2Fsvg%3E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+  <meta name="apple-mobile-web-app-title" content="Аномалия">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%23000'/%3E%3Ctext x='96' y='110' font-size='80' text-anchor='middle' fill='%23e0a800'%3E⚡%3C/text%3E%3C/svg%3E">
+  <title>Аномалия: Финал</title>
   <style>
     * {
       margin: 0; padding: 0; box-sizing: border-box;
@@ -36,6 +40,70 @@
       width: 100%; height: 100%; display: block;
       touch-action: manipulation; border: none; image-rendering: auto;
     }
+
+    #install-prompt {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(10,10,15,0.95);
+      backdrop-filter: blur(20px);
+      border: 2px solid rgba(224,168,0,0.5);
+      border-radius: 1.5rem;
+      padding: 2rem;
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      box-shadow: 0 0 30px rgba(224,168,0,0.3);
+      text-align: center;
+    }
+    #install-prompt.active { display: flex; }
+    #install-prompt h2 {
+      color: #e0a800;
+      font-size: clamp(1.2rem, 4vw, 1.8rem);
+      margin: 0;
+    }
+    #install-prompt p {
+      color: #aaa;
+      font-size: clamp(0.8rem, 2.5vw, 1.1rem);
+      margin: 0;
+    }
+    #install-btn, #dismiss-btn {
+      background: linear-gradient(180deg, #f1c40f 0%, #b8860b 100%);
+      border: none;
+      color: #0a0a0a;
+      padding: 0.8rem 2rem;
+      border-radius: 2rem;
+      font-weight: bold;
+      font-size: clamp(0.9rem, 3vw, 1.3rem);
+      cursor: pointer;
+      font-family: inherit;
+      transition: 0.2s;
+    }
+    #dismiss-btn {
+      background: transparent;
+      border: 1px solid #555;
+      color: #aaa;
+      padding: 0.5rem 1.5rem;
+    }
+    #install-btn:active, #dismiss-btn:active { transform: scale(0.94); }
+
+    #offline-indicator {
+      position: absolute;
+      top: max(1.2rem, env(safe-area-inset-top, 1.2rem));
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: #e0a800;
+      padding: 0.5rem 1.5rem;
+      border-radius: 2rem;
+      font-size: clamp(0.7rem, 2vw, 0.9rem);
+      z-index: 25;
+      display: none;
+      backdrop-filter: blur(10px);
+    }
+    #offline-indicator.show { display: block; }
 
     #fullscreen-btn {
       position: absolute;
@@ -193,7 +261,10 @@
       box-shadow: 0 15px 40px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.03);
       max-width: 80vw;
       letter-spacing: 0.05em;
+      opacity: 0;
+      transition: opacity 0.3s;
     }
+    #ui-desc.visible { opacity: 1; }
 
     #ui-back {
       position: absolute;
@@ -324,7 +395,15 @@
   <div id="loading">ЗАГРУЗКА...</div>
   <canvas id="game-canvas"></canvas>
 
+  <div id="offline-indicator">📡 Офлайн-режим</div>
   <button id="fullscreen-btn" class="hidden" title="Полноэкранный режим">⛶</button>
+
+  <div id="install-prompt">
+    <h2>⚡ Установить Аномалию</h2>
+    <p>Играйте как в настоящее приложение</p>
+    <button id="install-btn">Установить</button>
+    <button id="dismiss-btn">Не сейчас</button>
+  </div>
 
   <div id="lobby-layer">
     <div class="lobby-fog"></div>
@@ -335,7 +414,7 @@
 
   <div id="ui-layer">
     <div id="ui-inventory"></div>
-    <div id="ui-desc">Осмотритесь вокруг...</div>
+    <div id="ui-desc"></div>
     <button id="ui-back">↩ НАЗАД</button>
   </div>
 
@@ -365,10 +444,57 @@
 
 <script>
   (function() {
+    // ========== PWA SERVICE WORKER ==========
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        const CACHE_NAME = 'anomaly-v4';
+        const ASSETS = ['./', './index.html'];
+        self.addEventListener('install', (e) => {
+          e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
+        });
+        self.addEventListener('activate', (e) => {
+          e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))).then(() => self.clients.claim()));
+        });
+        self.addEventListener('fetch', (e) => {
+          e.respondWith(caches.match(e.request).then((cached) => cached || fetch(e.request).then((response) => {
+            if (response.status === 200) { const clone = response.clone(); caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone)); }
+            return response;
+          }).catch(() => e.request.mode === 'navigate' ? caches.match('./') : new Response('Offline', { status: 503 }))));
+        });
+      `;
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+    }
+
+    // ========== PWA INSTALL ==========
+    let deferredPrompt = null;
+    const installPrompt = document.getElementById('install-prompt');
+    document.getElementById('install-btn').addEventListener('click', async () => {
+      if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; }
+      installPrompt.classList.remove('active'); localStorage.setItem('pwa-dismissed', 'true');
+    });
+    document.getElementById('dismiss-btn').addEventListener('click', () => {
+      installPrompt.classList.remove('active'); localStorage.setItem('pwa-dismissed', 'true');
+    });
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault(); deferredPrompt = e;
+      setTimeout(() => { if (!localStorage.getItem('pwa-dismissed')) installPrompt.classList.add('active'); }, 3000);
+    });
+    window.addEventListener('appinstalled', () => { installPrompt.classList.remove('active'); deferredPrompt = null; });
+
+    // ========== OFFLINE ==========
+    const offlineIndicator = document.getElementById('offline-indicator');
+    function updateOnlineStatus() {
+      if (!navigator.onLine) { offlineIndicator.classList.add('show'); setTimeout(() => offlineIndicator.classList.remove('show'), 3000); }
+      else offlineIndicator.classList.remove('show');
+    }
+    window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus);
+    if (!navigator.onLine) updateOnlineStatus();
+
+    // ========== GAME ==========
     const canvas = document.getElementById('game-canvas');
     const ctx = canvas.getContext('2d');
     const gameWrapper = document.getElementById('game-wrapper');
-    
     const loading = document.getElementById('loading');
     const lobby = document.getElementById('lobby-layer');
     const uiLayer = document.getElementById('ui-layer');
@@ -381,9 +507,7 @@
     const fullscreenBtn = document.getElementById('fullscreen-btn');
 
     // ---------- FULLSCREEN ----------
-    function isFullscreen() {
-      return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-    }
+    function isFullscreen() { return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement; }
     function toggleFullscreen() {
       if (!isFullscreen()) {
         const el = gameWrapper;
@@ -419,52 +543,23 @@
     let zones = {};
 
     function updateZones() {
-      if(level===1) zones = {
-        bed:{x:310,y:430,w:190,h:140}, desk:{x:510,y:410,w:280,h:150},
-        closet:{x:900,y:40,w:160,h:320}, fridge:{x:15,y:70,w:110,h:360},
-        hatch:{x:130,y:440,w:120,h:100}
-      };
-      else if(level===2 && currentZone==='basement') zones = {
-        lever:{x:130,y:120,w:160,h:260}, door:{x:430,y:80,w:240,h:380},
-        passage:{x:840,y:100,w:230,h:420}
-      };
-      else if(level===2 && currentZone==='generator') zones = {
-        cell:{x:50,y:120,w:180,h:340}, exit:{x:840,y:100,w:230,h:420}
-      };
-      else if(level===3 && currentZone==='bunker_hall') zones = {
-        exitDoor:{x:680,y:100,w:200,h:320}, greenDoor:{x:260,y:100,w:170,h:320},
-        blueDoor:{x:460,y:100,w:170,h:320}
-      };
-      else if(level===3 && currentZone==='lab1') zones = {
-        table1:{x:350,y:350,w:400,h:180}, backExit:{x:850,y:100,w:220,h:420}
-      };
-      else if(level===3 && currentZone==='rest_room') zones = {
-        table2:{x:350,y:350,w:400,h:180}, drawer:{x:280,y:360,w:100,h:90},
-        backExit:{x:850,y:100,w:220,h:420}
-      };
-      else if(level===4) zones = {
-        cabinDoor:{x:80,y:260,w:200,h:200}, forestPath:{x:520,y:250,w:200,h:220},
-        lake:{x:830,y:340,w:200,h:180}
-      };
-      else if(level===5) zones = {
-        twigs:{x:60,y:370,w:220,h:130}, stick:{x:330,y:430,w:150,h:90},
-        bunkerDoor:{x:430,y:130,w:240,h:300}
-      };
-      else if(level===6) zones = {
-        diary:{x:460,y:350,w:180,h:35}, fireplace:{x:50,y:240,w:180,h:220},
-        bed_cabin:{x:680,y:350,w:140,h:100}, backExit:{x:780,y:100,w:220,h:420}
-      };
+      if(level===1) zones={bed:{x:310,y:430,w:190,h:140},desk:{x:510,y:410,w:280,h:150},closet:{x:900,y:40,w:160,h:320},fridge:{x:15,y:70,w:110,h:360},hatch:{x:130,y:440,w:120,h:100}};
+      else if(level===2&&currentZone==='basement') zones={lever:{x:130,y:120,w:160,h:260},door:{x:430,y:80,w:240,h:380},passage:{x:840,y:100,w:230,h:420}};
+      else if(level===2&&currentZone==='generator') zones={cell:{x:50,y:120,w:180,h:340},exit:{x:840,y:100,w:230,h:420}};
+      else if(level===3&&currentZone==='bunker_hall') zones={exitDoor:{x:680,y:100,w:200,h:320},greenDoor:{x:260,y:100,w:170,h:320},blueDoor:{x:460,y:100,w:170,h:320}};
+      else if(level===3&&currentZone==='lab1') zones={table1:{x:350,y:350,w:400,h:180},backExit:{x:850,y:100,w:220,h:420}};
+      else if(level===3&&currentZone==='rest_room') zones={table2:{x:350,y:350,w:400,h:180},drawer:{x:280,y:360,w:100,h:90},backExit:{x:850,y:100,w:220,h:420}};
+      else if(level===4) zones={cabinDoor:{x:80,y:260,w:200,h:200},forestPath:{x:520,y:250,w:200,h:220},lake:{x:830,y:340,w:200,h:180}};
+      else if(level===5) zones={twigs:{x:60,y:370,w:220,h:130},stick:{x:330,y:430,w:150,h:90},bunkerDoor:{x:430,y:130,w:240,h:300}};
+      else if(level===6) zones={diary:{x:460,y:350,w:180,h:35},fireplace:{x:50,y:240,w:180,h:220},bed_cabin:{x:680,y:350,w:140,h:100},backExit:{x:780,y:100,w:220,h:420}};
     }
 
     function resizeCanvas() {
       const rect = gameWrapper.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width = rect.width + 'px';
-      canvas.style.height = rect.height + 'px';
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.scale(dpr, dpr);
+      canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+      canvas.style.width = rect.width + 'px'; canvas.style.height = rect.height + 'px';
+      ctx.setTransform(1,0,0,1,0,0); ctx.scale(dpr, dpr);
     }
     window.addEventListener('resize', () => { resizeCanvas(); drawScene(); });
     window.addEventListener('orientationchange', () => setTimeout(() => { resizeCanvas(); drawScene(); }, 150));
@@ -473,176 +568,108 @@
       const rect = canvas.getBoundingClientRect();
       const cx = e.touches ? e.touches[0].clientX : e.clientX;
       const cy = e.touches ? e.touches[0].clientY : e.clientY;
-      return {
-        x: (cx - rect.left) * (ZOOM_W / rect.width),
-        y: (cy - rect.top) * (ZOOM_H / rect.height)
-      };
+      return { x: (cx - rect.left) * (ZOOM_W / rect.width), y: (cy - rect.top) * (ZOOM_H / rect.height) };
     }
 
-    // ---------- SIMPLE PARTICLE SYSTEM (ИСПРАВЛЕНО) ----------
+    // ---------- PARTICLES ----------
     let particles = [];
     function spawnParticles(x, y, count, color, spread, life) {
       for (let i = 0; i < count; i++) {
-        particles.push({
-          x: x + (Math.random() - 0.5) * 10,
-          y: y + (Math.random() - 0.5) * 5,
-          vx: (Math.random() - 0.5) * spread,
-          vy: -Math.random() * 3 - 1,
-          life: life + Math.random() * life * 0.5,
-          maxLife: life,
-          color,
-          size: 1.5 + Math.random() * 3
-        });
+        particles.push({ x: x + (Math.random() - 0.5) * 10, y: y + (Math.random() - 0.5) * 5, vx: (Math.random() - 0.5) * spread, vy: -Math.random() * 3 - 1, life: life + Math.random() * life * 0.5, maxLife: life, color, size: 1.5 + Math.random() * 3 });
       }
     }
     function updateParticles(dt) {
       for (let i = particles.length - 1; i >= 0; i--) {
-        let p = particles[i];
-        p.x += p.vx * dt * 60;
-        p.y += p.vy * dt * 60;
-        p.life -= dt * 60;
+        let p = particles[i]; p.x += p.vx * dt * 60; p.y += p.vy * dt * 60; p.life -= dt * 60;
         if (p.life <= 0) particles.splice(i, 1);
       }
     }
     function drawParticlesList() {
       for (let p of particles) {
         let alpha = Math.max(0, p.life / p.maxLife);
-        ctx.fillStyle = p.color.replace('1)', `${alpha})`);
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = p.color.replace('1)', `${alpha})`); ctx.beginPath(); ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2); ctx.fill();
       }
     }
 
-    // ---------- STABLE FIRE ANIMATION (ИСПРАВЛЕНО) ----------
+    // ---------- FIRE ----------
     function drawFire(x, y, size, time) {
       const t = time;
-      
-      // Свечение
       const glow = ctx.createRadialGradient(x, y - size * 0.3, size * 0.05, x, y, size * 2);
-      glow.addColorStop(0, 'rgba(255, 200, 50, 0.5)');
-      glow.addColorStop(0.3, 'rgba(255, 100, 20, 0.25)');
-      glow.addColorStop(0.6, 'rgba(200, 50, 0, 0.08)');
-      glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = glow;
-      ctx.fillRect(x - size * 2.5, y - size * 3, size * 5, size * 5);
-
-      // Слои пламени
+      glow.addColorStop(0, 'rgba(255, 200, 50, 0.5)'); glow.addColorStop(0.3, 'rgba(255, 100, 20, 0.25)'); glow.addColorStop(0.6, 'rgba(200, 50, 0, 0.08)'); glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = glow; ctx.fillRect(x - size * 2.5, y - size * 3, size * 5, size * 5);
       for (let layer = 0; layer < 3; layer++) {
         const ls = size * (1 - layer * 0.2);
-        
         for (let i = 0; i < 5; i++) {
           const phase = i * 1.2 + layer * 0.8;
           const fx = x + Math.sin(t * (3 + layer) + phase) * size * (0.25 + layer * 0.08);
           const fy = y - size * (0.1 + layer * 0.15);
           const fh = ls * (0.7 + Math.sin(t * (2.5 + layer) + phase) * 0.25);
           const fw = ls * (0.3 + Math.cos(t * (2 + layer) + phase) * 0.15);
-          
           const grad = ctx.createLinearGradient(fx, fy, fx, fy - fh);
-          const colors = [
-            ['rgba(255,255,200,0.9)', 'rgba(255,150,20,0.7)', 'rgba(255,50,0,0.3)', 'rgba(255,0,0,0)'],
-            ['rgba(255,200,100,0.8)', 'rgba(255,100,10,0.6)', 'rgba(200,30,0,0.2)', 'rgba(200,0,0,0)'],
-            ['rgba(255,255,150,0.85)', 'rgba(255,120,15,0.6)', 'rgba(255,60,0,0.4)', 'rgba(255,20,0,0)']
-          ];
-          grad.addColorStop(0, colors[layer][0]);
-          grad.addColorStop(0.3, colors[layer][1]);
-          grad.addColorStop(0.6, colors[layer][2]);
-          grad.addColorStop(1, colors[layer][3]);
-          
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.moveTo(fx - fw, fy);
-          ctx.quadraticCurveTo(fx - fw * 0.5, fy - fh * 0.5, fx, fy - fh);
-          ctx.quadraticCurveTo(fx + fw * 0.5, fy - fh * 0.5, fx + fw, fy);
-          ctx.closePath();
-          ctx.fill();
+          const colors = [['rgba(255,255,200,0.9)','rgba(255,150,20,0.7)','rgba(255,50,0,0.3)','rgba(255,0,0,0)'],['rgba(255,200,100,0.8)','rgba(255,100,10,0.6)','rgba(200,30,0,0.2)','rgba(200,0,0,0)'],['rgba(255,255,150,0.85)','rgba(255,120,15,0.6)','rgba(255,60,0,0.4)','rgba(255,20,0,0)']];
+          grad.addColorStop(0, colors[layer][0]); grad.addColorStop(0.3, colors[layer][1]); grad.addColorStop(0.6, colors[layer][2]); grad.addColorStop(1, colors[layer][3]);
+          ctx.fillStyle = grad; ctx.beginPath(); ctx.moveTo(fx - fw, fy); ctx.quadraticCurveTo(fx - fw * 0.5, fy - fh * 0.5, fx, fy - fh); ctx.quadraticCurveTo(fx + fw * 0.5, fy - fh * 0.5, fx + fw, fy); ctx.closePath(); ctx.fill();
         }
       }
-      
-      // Ядро
       const core = ctx.createRadialGradient(x, y - size * 0.15, 0, x, y - size * 0.15, size * 0.25);
-      core.addColorStop(0, 'rgba(255,255,255,0.95)');
-      core.addColorStop(0.3, 'rgba(255,220,100,0.7)');
-      core.addColorStop(0.7, 'rgba(255,150,50,0.2)');
-      core.addColorStop(1, 'rgba(255,100,0,0)');
-      ctx.fillStyle = core;
-      ctx.beginPath();
-      ctx.arc(x, y - size * 0.15, size * 0.25, 0, Math.PI * 2);
-      ctx.fill();
+      core.addColorStop(0, 'rgba(255,255,255,0.95)'); core.addColorStop(0.3, 'rgba(255,220,100,0.7)'); core.addColorStop(0.7, 'rgba(255,150,50,0.2)'); core.addColorStop(1, 'rgba(255,100,0,0)');
+      ctx.fillStyle = core; ctx.beginPath(); ctx.arc(x, y - size * 0.15, size * 0.25, 0, Math.PI * 2); ctx.fill();
     }
 
-    // ---------- DRAWING FUNCTIONS ----------
+    // ---------- DRAWING ----------
     function drawRoom(time) {
       const wg = ctx.createRadialGradient(550, 180, 30, 400, 300, 950);
-      wg.addColorStop(0, '#8a9aa5'); wg.addColorStop(0.3, '#5a6a75');
-      wg.addColorStop(0.7, '#2a3238'); wg.addColorStop(1, '#0a0a0e');
+      wg.addColorStop(0, '#8a9aa5'); wg.addColorStop(0.3, '#5a6a75'); wg.addColorStop(0.7, '#2a3238'); wg.addColorStop(1, '#0a0a0e');
       ctx.fillStyle = wg; ctx.fillRect(0, 0, ZOOM_W, 440);
-      
       ctx.fillStyle = 'rgba(0,0,0,0.06)';
-      for (let y = 20; y < 430; y += 40)
-        for (let x = 20; x < ZOOM_W; x += 40)
-          ctx.fillRect(x, y, 20, 20);
-      
+      for (let y = 20; y < 430; y += 40) for (let x = 20; x < ZOOM_W; x += 40) ctx.fillRect(x, y, 20, 20);
       const fg = ctx.createLinearGradient(0, 440, 0, ZOOM_H);
       fg.addColorStop(0, '#5a4a3a'); fg.addColorStop(0.4, '#3a2a1a'); fg.addColorStop(1, '#0a0a0a');
       ctx.fillStyle = fg; ctx.fillRect(0, 440, ZOOM_W, ZOOM_H - 440);
-      
       ctx.fillStyle = '#1c2833'; ctx.fillRect(320, 70, 460, 240);
       ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 18; ctx.strokeRect(320, 70, 460, 240);
       ctx.beginPath(); ctx.moveTo(550, 70); ctx.lineTo(550, 310); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(320, 190); ctx.lineTo(780, 190); ctx.stroke();
-      
       const cw = Math.sin(time * 2) * 4;
       ctx.fillStyle = '#3e2723';
       ctx.beginPath(); ctx.moveTo(320, 70); ctx.lineTo(320 + cw, 310); ctx.lineTo(340 + cw, 310); ctx.lineTo(340, 70); ctx.fill();
       ctx.beginPath(); ctx.moveTo(760, 70); ctx.lineTo(760 + cw, 310); ctx.lineTo(780 + cw, 310); ctx.lineTo(780, 70); ctx.fill();
-      
       const br = Math.sin(time * 0.7) * 2;
       ctx.fillStyle = '#1e3a5f'; ctx.fillRect(310, 470, 200, 110);
       ctx.fillStyle = '#294a7a'; ctx.fillRect(315, 475, 190, 100);
       ctx.fillStyle = '#f5f5f5'; ctx.beginPath(); ctx.ellipse(350, 500 + br, 35, 22, -0.1, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#e0e0e0'; ctx.beginPath(); ctx.ellipse(350, 500 + br, 28, 16, -0.1, 0, Math.PI * 2); ctx.fill();
-      
       ctx.fillStyle = '#5d4037'; ctx.fillRect(510, 480, 290, 90);
       ctx.fillStyle = '#4a3028'; ctx.fillRect(515, 485, 280, 80);
       ctx.fillStyle = '#1a1a1a'; ctx.fillRect(560, 440, 190, 50);
       ctx.fillStyle = `rgba(0,191,255,${0.05 + Math.sin(time * 8) * 0.02})`; ctx.fillRect(560, 440, 190, 50);
-      ctx.fillStyle = '#00bfff'; ctx.font = '13px monospace'; ctx.textAlign = 'center';
-      ctx.fillText('ПОИСК СИГНАЛА...', 655, 470);
-      
+      ctx.fillStyle = '#00bfff'; ctx.font = '13px monospace'; ctx.textAlign = 'center'; ctx.fillText('ПОИСК СИГНАЛА...', 655, 470);
       const cg = ctx.createLinearGradient(900, 0, 1100, 0);
       cg.addColorStop(0, '#3a2518'); cg.addColorStop(0.5, '#6d4c41'); cg.addColorStop(1, '#2a1a10');
       ctx.fillStyle = cg; ctx.fillRect(890, 60, 190, 330);
       ctx.fillStyle = '#4a3020'; ctx.fillRect(895, 65, 180, 320);
       ctx.fillStyle = '#d4af37'; ctx.fillRect(930, 120, 10, 45); ctx.fillRect(1020, 120, 10, 45);
-      
       let fx = state.fridgeMoved ? -100 : 10;
       const fg2 = ctx.createLinearGradient(fx, 0, fx + 110, 0);
       fg2.addColorStop(0, '#f0f0f0'); fg2.addColorStop(0.3, '#fff'); fg2.addColorStop(0.7, '#d0d0d0'); fg2.addColorStop(1, '#a0a0a0');
       ctx.fillStyle = fg2; ctx.fillRect(fx, 60, 110, 370);
       ctx.fillStyle = '#546e7a'; ctx.fillRect(fx + 80, 110, 12, 50); ctx.fillRect(fx + 80, 280, 12, 50);
-      
       if (state.fridgeMoved) {
         ctx.fillStyle = '#1a1a1a'; ctx.fillRect(120, 450, 130, 110);
         ctx.fillStyle = '#2a2a2a'; ctx.fillRect(125, 455, 120, 100);
-        if (state.hatchOpened) {
-          ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center';
-          ctx.fillText('⬇ ОТКРЫТ', 185, 520);
-        }
+        if (state.hatchOpened) { ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('⬇ ОТКРЫТ', 185, 520); }
       }
     }
 
     function drawBasement(time) {
       ctx.fillStyle = '#1a1a1e'; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
       ctx.fillStyle = '#151518'; ctx.fillRect(0, 420, ZOOM_W, ZOOM_H - 420);
-      
       const tg = ctx.createRadialGradient(100, 230, 20, 100, 230, 250);
       tg.addColorStop(0, 'rgba(255,150,30,0.3)'); tg.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = tg; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
       ctx.fillStyle = '#8d6e63'; ctx.fillRect(75, 200, 50, 25);
       ctx.fillStyle = '#5d4e43'; ctx.fillRect(85, 195, 30, 10);
       drawFire(100, 210, 30, time);
-      
       const sw = Math.sin(time * 1.5) * 3;
       ctx.strokeStyle = '#666'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(550, 40); ctx.quadraticCurveTo(550 + sw * 2, 60, 550 + sw, 80); ctx.stroke();
@@ -650,55 +677,38 @@
       lg.addColorStop(0, 'rgba(255,200,50,0.4)'); lg.addColorStop(0.5, 'rgba(255,150,20,0.1)'); lg.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = lg; ctx.fillRect(480, 30, 140, 140);
       ctx.fillStyle = '#f1c40f'; ctx.beginPath(); ctx.arc(550 + sw, 95, 12, 0, Math.PI * 2); ctx.fill();
-      
       for (let i = 0; i < 4; i++) {
         const dy = (time * (40 + i * 15) + i * 60) % 200;
-        if (dy < 180) {
-          ctx.fillStyle = 'rgba(100,150,200,0.5)';
-          ctx.beginPath(); ctx.ellipse(200 + i * 150, 420 + dy, 2, 4, 0, 0, Math.PI * 2); ctx.fill();
-        }
+        if (dy < 180) { ctx.fillStyle = 'rgba(100,150,200,0.5)'; ctx.beginPath(); ctx.ellipse(200 + i * 150, 420 + dy, 2, 4, 0, 0, Math.PI * 2); ctx.fill(); }
       }
-      
       ctx.fillStyle = '#37474f'; ctx.fillRect(145, 130, 70, 210);
       ctx.fillStyle = '#455a64'; ctx.fillRect(150, 135, 60, 200);
       ctx.fillStyle = '#546e7a'; ctx.fillRect(160, 210, 40, 65);
       ctx.fillStyle = state.powerOn ? '#00ffcc' : '#ff1744';
-      ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(state.powerOn ? '⚡ ПИТАНИЕ' : '⚠ НЕТ', 180, 110);
-      
+      ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(state.powerOn ? '⚡ ПИТАНИЕ' : '⚠ НЕТ', 180, 110);
       ctx.fillStyle = '#3e2723'; ctx.fillRect(440, 80, 220, 380);
       ctx.fillStyle = '#2a1a12'; ctx.fillRect(445, 85, 210, 370);
       ctx.fillStyle = '#78909c'; ctx.beginPath(); ctx.arc(550, 270, 45, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#546e7a'; ctx.beginPath(); ctx.arc(550, 270, 30, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = state.doorOpened ? '#00ffcc' : (state.powerOn ? '#ffeb3b' : '#ff1744');
-      ctx.font = 'bold 22px sans-serif';
-      ctx.fillText(state.doorOpened ? 'ОТКРЫТО' : (state.powerOn ? 'НАЖМИТЕ' : '🔒 ЗАКРЫТО'), 550, 220);
-      
+      ctx.font = 'bold 22px sans-serif'; ctx.fillText(state.doorOpened ? 'ОТКРЫТО' : (state.powerOn ? 'НАЖМИТЕ' : '🔒 ЗАКРЫТО'), 550, 220);
       ctx.fillStyle = '#0a0a0e'; ctx.fillRect(840, 80, 250, 420);
       ctx.fillStyle = '#555'; ctx.font = '18px sans-serif'; ctx.fillText('➡ ГЕНЕРАТОРНАЯ', 965, 460);
     }
 
     function drawGenerator(time) {
       ctx.fillStyle = '#2c3e50'; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
-      
       for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 2; j++) {
           const sy = (time * 30 + j * 40 + i * 70) % 200;
           const a = Math.max(0, 0.2 - sy / 200 * 0.2);
-          ctx.fillStyle = `rgba(200,200,210,${a})`;
-          ctx.beginPath(); ctx.arc(200 + i * 300 + Math.sin(time * 2 + j) * 8, 400 - sy, 12 + j * 4, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = `rgba(200,200,210,${a})`; ctx.beginPath(); ctx.arc(200 + i * 300 + Math.sin(time * 2 + j) * 8, 400 - sy, 12 + j * 4, 0, Math.PI * 2); ctx.fill();
         }
       }
-      
       ctx.fillStyle = '#2c2c2c'; ctx.fillRect(55, 140, 150, 280);
       ctx.fillStyle = '#1a1a1a'; ctx.fillRect(60, 145, 140, 270);
-      if (state.batteryTaken) {
-        ctx.fillStyle = '#555'; ctx.font = '22px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('ПУСТО', 130, 290);
-      } else {
-        ctx.fillStyle = '#f1c40f'; ctx.font = '55px sans-serif'; ctx.fillText('🔋', 130, 270);
-        ctx.fillStyle = '#fff'; ctx.font = '15px sans-serif'; ctx.fillText('Аккумулятор', 130, 330);
-      }
-      
+      if (state.batteryTaken) { ctx.fillStyle = '#555'; ctx.font = '22px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('ПУСТО', 130, 290); }
+      else { ctx.fillStyle = '#f1c40f'; ctx.font = '55px sans-serif'; ctx.fillText('🔋', 130, 270); ctx.fillStyle = '#fff'; ctx.font = '15px sans-serif'; ctx.fillText('Аккумулятор', 130, 330); }
       ctx.fillStyle = '#0a0a0e'; ctx.fillRect(840, 80, 250, 420);
       ctx.fillStyle = '#555'; ctx.font = '18px sans-serif'; ctx.fillText('⬅ НАЗАД', 965, 460);
     }
@@ -706,15 +716,11 @@
     function drawBunkerHall() {
       ctx.fillStyle = '#1a1a1e'; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
       ctx.fillStyle = '#252530'; ctx.fillRect(0, 400, ZOOM_W, ZOOM_H - 400);
-      
       ctx.fillStyle = '#3e2723'; ctx.fillRect(670, 90, 220, 340);
       ctx.fillStyle = '#fff'; ctx.font = 'bold 24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🚪 ВЫХОД', 780, 260);
-      ctx.fillStyle = state.finalExitOpened ? '#00ffcc' : '#ff1744';
-      ctx.font = '18px sans-serif'; ctx.fillText(state.finalExitOpened ? 'ОТКРЫТО' : 'КАРТА 2', 780, 300);
-      
+      ctx.fillStyle = state.finalExitOpened ? '#00ffcc' : '#ff1744'; ctx.font = '18px sans-serif'; ctx.fillText(state.finalExitOpened ? 'ОТКРЫТО' : 'КАРТА 2', 780, 300);
       ctx.fillStyle = '#2e7d32'; ctx.fillRect(250, 110, 180, 300);
       ctx.fillStyle = '#fff'; ctx.font = 'bold 22px sans-serif'; ctx.fillText('🚪 ЛАБ 1', 340, 260);
-      
       ctx.fillStyle = '#1565c0'; ctx.fillRect(450, 110, 180, 300);
       ctx.fillStyle = '#fff'; ctx.font = 'bold 22px sans-serif';
       if (state.blueDoorOpened) { ctx.fillStyle = '#00ffcc'; ctx.fillText('🚪 ОТКРЫТО', 540, 260); }
@@ -724,8 +730,7 @@
     function drawLab1() {
       ctx.fillStyle = '#37474f'; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
       ctx.fillStyle = '#5d4037'; ctx.fillRect(370, 370, 360, 80);
-      ctx.fillStyle = state.keyCard1 ? '#666' : '#00ff00';
-      ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(state.keyCard1 ? 'Карта взята' : '🟩 Карта 1 уровня', 550, 420);
+      ctx.fillStyle = state.keyCard1 ? '#666' : '#00ff00'; ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(state.keyCard1 ? 'Карта взята' : '🟩 Карта 1 уровня', 550, 420);
       ctx.fillStyle = '#0a0a0e'; ctx.fillRect(860, 80, 200, 420);
       ctx.fillStyle = '#555'; ctx.font = '18px sans-serif'; ctx.fillText('⬅ ВЫХОД', 960, 290);
     }
@@ -733,17 +738,11 @@
     function drawRestRoom() {
       ctx.fillStyle = '#1a1a1e'; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
       ctx.fillStyle = '#5d4037'; ctx.fillRect(370, 370, 360, 80);
-      let items = [];
-      if (!state.keyCard2) items.push('🟦 Карта 2');
-      if (!state.letterTaken) items.push('📜 Письмо');
-      ctx.fillStyle = '#448aff'; ctx.font = '22px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(items.length ? items.join(' & ') : 'Всё взято', 550, 420);
-      
+      let items = []; if (!state.keyCard2) items.push('🟦 Карта 2'); if (!state.letterTaken) items.push('📜 Письмо');
+      ctx.fillStyle = '#448aff'; ctx.font = '22px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(items.length ? items.join(' & ') : 'Всё взято', 550, 420);
       ctx.fillStyle = '#3e2723'; ctx.fillRect(285, 375, 85, 65);
       ctx.fillStyle = state.keyUsed && state.secretNoteTaken ? '#555' : (state.keyUsed ? '#f1c40f' : (state.keyTaken ? '#ffeb3b' : '#444'));
-      ctx.font = '18px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(state.keyUsed && state.secretNoteTaken ? 'Пусто' : (state.keyUsed ? '🗺️' : (state.keyTaken ? '🔑' : '🔒')), 327, 412);
-      
+      ctx.font = '18px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(state.keyUsed && state.secretNoteTaken ? 'Пусто' : (state.keyUsed ? '🗺️' : (state.keyTaken ? '🔑' : '🔒')), 327, 412);
       ctx.fillStyle = '#0a0a0e'; ctx.fillRect(860, 80, 200, 420);
       ctx.fillStyle = '#555'; ctx.font = '18px sans-serif'; ctx.fillText('⬅ ВЫХОД', 960, 290);
     }
@@ -752,64 +751,36 @@
       const sg = ctx.createLinearGradient(0, 0, 0, 380);
       sg.addColorStop(0, '#2c3e50'); sg.addColorStop(0.4, '#4a6a7a'); sg.addColorStop(0.8, '#8baec4'); sg.addColorStop(1, '#d0e8f0');
       ctx.fillStyle = sg; ctx.fillRect(0, 0, ZOOM_W, 380);
-      
-      for (let i = 0; i < 15; i++) {
-        let x = 20 + i * 80;
-        ctx.fillStyle = '#1a2a1a';
-        ctx.beginPath(); ctx.moveTo(x, 360); ctx.lineTo(x + 35, 180); ctx.lineTo(x + 70, 360); ctx.fill();
-      }
-      
+      for (let i = 0; i < 15; i++) { let x = 20 + i * 80; ctx.fillStyle = '#1a2a1a'; ctx.beginPath(); ctx.moveTo(x, 360); ctx.lineTo(x + 35, 180); ctx.lineTo(x + 70, 360); ctx.fill(); }
       const sng = ctx.createLinearGradient(0, 360, 0, ZOOM_H);
       sng.addColorStop(0, '#e8f0f8'); sng.addColorStop(0.3, '#d0dce8'); sng.addColorStop(1, '#b0c0d0');
       ctx.fillStyle = sng; ctx.fillRect(0, 360, ZOOM_W, ZOOM_H - 360);
-      
-      // ХИЖИНА С КРЫШЕЙ И ТРУБОЙ
       const cg = ctx.createLinearGradient(80, 240, 300, 480);
       cg.addColorStop(0, '#6d4c41'); cg.addColorStop(0.5, '#5d4037'); cg.addColorStop(1, '#3e2723');
       ctx.fillStyle = cg; ctx.fillRect(80, 260, 220, 220);
-      
       ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 2;
       for (let y = 270; y < 470; y += 25) { ctx.beginPath(); ctx.moveTo(80, y); ctx.lineTo(300, y); ctx.stroke(); }
-      
-      ctx.fillStyle = '#4a3020';
-      ctx.beginPath(); ctx.moveTo(60, 260); ctx.lineTo(190, 170); ctx.lineTo(320, 260); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#4a3020'; ctx.beginPath(); ctx.moveTo(60, 260); ctx.lineTo(190, 170); ctx.lineTo(320, 260); ctx.closePath(); ctx.fill();
       ctx.strokeStyle = '#3a2010'; ctx.lineWidth = 3; ctx.stroke();
-      ctx.fillStyle = '#e8f0f8';
-      ctx.beginPath(); ctx.moveTo(65, 255); ctx.lineTo(190, 175); ctx.lineTo(315, 255); ctx.lineTo(300, 250); ctx.lineTo(190, 185); ctx.lineTo(80, 250); ctx.closePath(); ctx.fill();
-      
+      ctx.fillStyle = '#e8f0f8'; ctx.beginPath(); ctx.moveTo(65, 255); ctx.lineTo(190, 175); ctx.lineTo(315, 255); ctx.lineTo(300, 250); ctx.lineTo(190, 185); ctx.lineTo(80, 250); ctx.closePath(); ctx.fill();
       ctx.fillStyle = '#3e2723'; ctx.fillRect(220, 150, 30, 60);
       ctx.fillStyle = '#4a3020'; ctx.fillRect(225, 145, 20, 10);
       ctx.fillStyle = '#f0f4f8'; ctx.fillRect(222, 148, 26, 6);
-      
       for (let i = 0; i < 4; i++) {
-        const sx = 235 + Math.sin(time + i) * 8;
-        const sy = 145 - (time * 20 + i * 25) % 60;
+        const sx = 235 + Math.sin(time + i) * 8; const sy = 145 - (time * 20 + i * 25) % 60;
         const a = Math.max(0, 0.25 - ((time * 20 + i * 25) % 60) / 240);
-        ctx.fillStyle = `rgba(150,150,150,${a})`;
-        ctx.beginPath(); ctx.arc(sx, sy, 8 + i * 3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = `rgba(150,150,150,${a})`; ctx.beginPath(); ctx.arc(sx, sy, 8 + i * 3, 0, Math.PI * 2); ctx.fill();
       }
-      
       ctx.fillStyle = '#3e2723'; ctx.fillRect(130, 340, 60, 130);
       ctx.fillStyle = '#d4af37'; ctx.beginPath(); ctx.arc(160, 410, 6, 0, Math.PI * 2); ctx.fill();
-      
       const wgl = Math.sin(time * 1.5) * 0.08 + 0.4;
-      ctx.fillStyle = `rgba(255,180,0,${wgl})`;
-      ctx.fillRect(100, 300, 45, 45); ctx.fillRect(205, 300, 45, 45);
-      ctx.fillStyle = `rgba(255,200,100,${wgl * 0.3})`;
-      ctx.fillRect(100, 300, 45, 45); ctx.fillRect(205, 300, 45, 45);
-      
-      ctx.fillStyle = '#fff'; ctx.font = 'bold 22px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText('➡ ТРОПА ВПЕРЕД', 580, 380);
-      
+      ctx.fillStyle = `rgba(255,180,0,${wgl})`; ctx.fillRect(100, 300, 45, 45); ctx.fillRect(205, 300, 45, 45);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 22px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('➡ ТРОПА ВПЕРЕД', 580, 380);
       ctx.fillStyle = 'rgba(70,130,180,0.5)'; ctx.beginPath(); ctx.ellipse(900, 450, 160, 80, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#fff'; ctx.font = '18px sans-serif'; ctx.fillText('🌊 ОЗЕРО', 900, 410);
-      
       for (let i = 0; i < 80; i++) {
-        const sx = (i * 37 + time * 25) % ZOOM_W;
-        const sy = (i * 43 + time * 35) % ZOOM_H;
-        const swb = Math.sin(time * 4 + i) * 2;
-        ctx.fillStyle = `rgba(255,255,255,${0.2 + Math.sin(i) * 0.2})`;
-        ctx.beginPath(); ctx.arc(sx + swb, sy, 2 + (i % 3), 0, Math.PI * 2); ctx.fill();
+        const sx = (i * 37 + time * 25) % ZOOM_W; const sy = (i * 43 + time * 35) % ZOOM_H; const swb = Math.sin(time * 4 + i) * 2;
+        ctx.fillStyle = `rgba(255,255,255,${0.2 + Math.sin(i) * 0.2})`; ctx.beginPath(); ctx.arc(sx + swb, sy, 2 + (i % 3), 0, Math.PI * 2); ctx.fill();
       }
     }
 
@@ -817,85 +788,35 @@
       const sg = ctx.createLinearGradient(0, 0, 0, 420);
       sg.addColorStop(0, '#1a252c'); sg.addColorStop(0.4, '#2c3e50'); sg.addColorStop(0.8, '#6a8a9a'); sg.addColorStop(1, '#a0c0d0');
       ctx.fillStyle = sg; ctx.fillRect(0, 0, ZOOM_W, 420);
-      
       const sng = ctx.createLinearGradient(0, 400, 0, ZOOM_H);
       sng.addColorStop(0, '#e8f0f8'); sng.addColorStop(0.5, '#d0dce8'); sng.addColorStop(1, '#b8c8d8');
       ctx.fillStyle = sng; ctx.fillRect(0, 400, ZOOM_W, ZOOM_H - 400);
-      
-      // Хворост
       ctx.fillStyle = '#4e342e'; ctx.fillRect(50, 420, 200, 70);
-      for (let i = 0; i < 15; i++) {
-        ctx.fillStyle = `rgb(${60 + i * 3},${30 + i * 2},${15 + i})`;
-        ctx.fillRect(55 + i * 12, 425 + (i % 3) * 15, 10 + i % 8, 3 + (i % 2));
-      }
-      ctx.fillStyle = '#f0f0f0'; ctx.font = '20px Georgia'; ctx.textAlign = 'center';
-      ctx.fillText('🌲 ХВОРОСТ', 150, 415);
-      
-      // Палка
+      for (let i = 0; i < 15; i++) { ctx.fillStyle = `rgb(${60 + i * 3},${30 + i * 2},${15 + i})`; ctx.fillRect(55 + i * 12, 425 + (i % 3) * 15, 10 + i % 8, 3 + (i % 2)); }
+      ctx.fillStyle = '#f0f0f0'; ctx.font = '20px Georgia'; ctx.textAlign = 'center'; ctx.fillText('🌲 ХВОРОСТ', 150, 415);
       ctx.fillStyle = '#5d4037'; ctx.fillRect(330, 450, 130, 25);
       ctx.fillStyle = '#4a3020'; ctx.fillRect(335, 452, 120, 21);
-      ctx.fillStyle = '#f0f0f0'; ctx.font = '20px Georgia'; ctx.textAlign = 'center';
-      ctx.fillText('🪵 ПАЛКА', 395, 440);
-      
-      // Замёрзший бункер
+      ctx.fillStyle = '#f0f0f0'; ctx.font = '20px Georgia'; ctx.textAlign = 'center'; ctx.fillText('🪵 ПАЛКА', 395, 440);
       ctx.fillStyle = '#3e2723'; ctx.fillRect(430, 130, 240, 330);
       ctx.fillStyle = '#2a1a12'; ctx.fillRect(435, 135, 230, 320);
-      
-      if (state.bunkerUnlocked) {
-        ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 28px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText('🚪 ОТТАЯЛО!', 550, 280);
-      } else if (state.fireStarted) {
+      if (state.bunkerUnlocked) { ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 28px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🚪 ОТТАЯЛО!', 550, 280); }
+      else if (state.fireStarted) {
         ctx.fillStyle = 'rgba(180,220,255,0.3)'; ctx.fillRect(435, 135, 230, 320);
-        // Капли таяния
-        for (let i = 0; i < 6; i++) {
-          const dx = 480 + (i * 40) % 140;
-          const dy = (time * 30 + i * 40) % 200;
-          if (dy < 180) {
-            ctx.fillStyle = 'rgba(200,230,255,0.5)';
-            ctx.beginPath(); ctx.ellipse(dx, 180 + dy, 1.5, 3, 0, 0, Math.PI * 2); ctx.fill();
-          }
-        }
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 28px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText('🧊 ЛЁД ТАЕТ...', 550, 280);
-      } else {
-        ctx.fillStyle = 'rgba(180,220,255,0.5)'; ctx.fillRect(435, 135, 230, 320);
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 26px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText('🧊 ЗАМЁРЗШИЙ ВХОД', 550, 280);
-      }
-      
-      // Костёр (ИСПРАВЛЕНО)
+        for (let i = 0; i < 6; i++) { const dx = 480 + (i * 40) % 140; const dy = (time * 30 + i * 40) % 200; if (dy < 180) { ctx.fillStyle = 'rgba(200,230,255,0.5)'; ctx.beginPath(); ctx.ellipse(dx, 180 + dy, 1.5, 3, 0, 0, Math.PI * 2); ctx.fill(); } }
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 28px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🧊 ЛЁД ТАЕТ...', 550, 280);
+      } else { ctx.fillStyle = 'rgba(180,220,255,0.5)'; ctx.fillRect(435, 135, 230, 320); ctx.fillStyle = '#fff'; ctx.font = 'bold 26px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🧊 ЗАМЁРЗШИЙ ВХОД', 550, 280); }
       if (state.fireStarted) {
         const fg = ctx.createRadialGradient(150, 440, 30, 150, 440, 200);
-        fg.addColorStop(0, 'rgba(255,180,50,0.5)');
-        fg.addColorStop(0.3, 'rgba(255,100,20,0.2)');
-        fg.addColorStop(0.6, 'rgba(200,50,0,0.08)');
-        fg.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = fg;
-        ctx.fillRect(0, 280, 400, 340);
-        
-        // Дрова под костром
-        ctx.fillStyle = '#3e2723';
-        ctx.fillRect(120, 455, 60, 8);
-        ctx.fillRect(130, 460, 40, 8);
-        
+        fg.addColorStop(0, 'rgba(255,180,50,0.5)'); fg.addColorStop(0.3, 'rgba(255,100,20,0.2)'); fg.addColorStop(0.6, 'rgba(200,50,0,0.08)'); fg.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = fg; ctx.fillRect(0, 280, 400, 340);
+        ctx.fillStyle = '#3e2723'; ctx.fillRect(120, 455, 60, 8); ctx.fillRect(130, 460, 40, 8);
         drawFire(150, 450, 40, time);
-        
-        // Частицы только когда костёр активен
-        if (Math.random() < 0.5) {
-          spawnParticles(150, 440, 2, 'rgb(255,150,0)', 3, 1.5);
-        }
-        
-        ctx.fillStyle = '#fff'; ctx.font = '18px Georgia'; ctx.textAlign = 'center';
-        ctx.fillText('🔥 КОСТЁР', 150, 395);
+        if (Math.random() < 0.5) spawnParticles(150, 440, 2, 'rgb(255,150,0)', 3, 1.5);
+        ctx.fillStyle = '#fff'; ctx.font = '18px Georgia'; ctx.textAlign = 'center'; ctx.fillText('🔥 КОСТЁР', 150, 395);
       }
-      
-      // Снежинки
       for (let i = 0; i < 80; i++) {
-        const sx = (i * 37 + time * 25) % ZOOM_W;
-        const sy = (i * 43 + time * 35) % ZOOM_H;
-        const swb = Math.sin(time * 4 + i) * 2;
-        ctx.fillStyle = `rgba(255,255,255,${0.2 + Math.sin(i) * 0.2})`;
-        ctx.beginPath(); ctx.arc(sx + swb, sy, 2 + (i % 4), 0, Math.PI * 2); ctx.fill();
+        const sx = (i * 37 + time * 25) % ZOOM_W; const sy = (i * 43 + time * 35) % ZOOM_H; const swb = Math.sin(time * 4 + i) * 2;
+        ctx.fillStyle = `rgba(255,255,255,${0.2 + Math.sin(i) * 0.2})`; ctx.beginPath(); ctx.arc(sx + swb, sy, 2 + (i % 4), 0, Math.PI * 2); ctx.fill();
       }
     }
 
@@ -903,91 +824,51 @@
       const wg = ctx.createLinearGradient(0, 0, 0, ZOOM_H);
       wg.addColorStop(0, '#6d4c41'); wg.addColorStop(0.5, '#5d4037'); wg.addColorStop(1, '#3e2723');
       ctx.fillStyle = wg; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
-      
-      for (let y = 20; y < ZOOM_H; y += 50) {
-        ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(ZOOM_W, y); ctx.stroke();
-      }
-      
+      for (let y = 20; y < ZOOM_H; y += 50) { ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(ZOOM_W, y); ctx.stroke(); }
       ctx.fillStyle = '#2c1a12'; ctx.fillRect(30, 220, 220, 280);
       ctx.fillStyle = '#1a0f0a'; ctx.fillRect(35, 225, 210, 270);
-      
       const fg = ctx.createRadialGradient(140, 400, 40, 140, 400, 400);
       fg.addColorStop(0, 'rgba(255,180,50,0.4)'); fg.addColorStop(0.3, 'rgba(255,100,20,0.15)'); fg.addColorStop(0.6, 'rgba(200,50,0,0.05)'); fg.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = fg; ctx.fillRect(0, 100, 500, 500);
-      
       drawFire(140, 410, 50, time);
-      
-      if (Math.random() < 0.3) {
-        spawnParticles(140, 400, 1, 'rgb(255,150,0)', 1.5, 1.2);
-      }
-      
-      ctx.fillStyle = '#4e342e'; ctx.fillRect(80, 440, 120, 22);
-      ctx.fillRect(100, 452, 80, 22);
+      if (Math.random() < 0.3) spawnParticles(140, 400, 1, 'rgb(255,150,0)', 1.5, 1.2);
+      ctx.fillStyle = '#4e342e'; ctx.fillRect(80, 440, 120, 22); ctx.fillRect(100, 452, 80, 22);
       ctx.fillStyle = '#3e2723'; ctx.fillRect(110, 465, 60, 18);
-      
       ctx.fillStyle = '#5d2a1a'; ctx.beginPath(); ctx.ellipse(140, 500, 100, 45, 0, 0, Math.PI * 2); ctx.fill();
-      
       ctx.fillStyle = '#4e342e'; ctx.fillRect(380, 390, 340, 70);
       ctx.fillStyle = '#3a2518'; ctx.fillRect(385, 395, 330, 60);
-      
       ctx.fillStyle = '#8d6e63'; ctx.fillRect(480, 372, 140, 22);
       ctx.fillStyle = '#d7ccc8'; ctx.fillRect(485, 374, 130, 18);
-      ctx.fillStyle = '#4e342e'; ctx.font = '13px Georgia'; ctx.textAlign = 'center';
-      ctx.fillText('Дневник лесника', 550, 387);
-      
+      ctx.fillStyle = '#4e342e'; ctx.font = '13px Georgia'; ctx.textAlign = 'center'; ctx.fillText('Дневник лесника', 550, 387);
       const lf = Math.sin(time * 6) * 0.08 + 0.6;
       ctx.fillStyle = '#bdbdbd'; ctx.fillRect(640, 340, 18, 55);
       ctx.fillStyle = '#f5f5f5'; ctx.fillRect(635, 325, 28, 18);
-      ctx.fillStyle = `rgba(255,180,0,${lf})`;
-      ctx.shadowColor = `rgba(255,200,50,${lf * 0.4})`; ctx.shadowBlur = 12;
-      ctx.beginPath(); ctx.arc(649, 318, 14, 0, Math.PI * 2); ctx.fill();
-      ctx.shadowBlur = 0;
-      
+      ctx.fillStyle = `rgba(255,180,0,${lf})`; ctx.shadowColor = `rgba(255,200,50,${lf * 0.4})`; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(649, 318, 14, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
       ctx.fillStyle = '#4e342e'; ctx.fillRect(700, 360, 150, 100);
       ctx.fillStyle = '#f5f5f5'; ctx.beginPath(); ctx.ellipse(725, 395, 30, 20, -0.1, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#1a237e'; ctx.fillRect(760, 390, 55, 25);
-      
       ctx.fillStyle = '#3e2723'; ctx.fillRect(790, 90, 220, 430);
       ctx.fillStyle = '#fff'; ctx.font = 'bold 20px sans-serif'; ctx.fillText('🚪 ВЫХОД', 900, 310);
-      
-      ctx.fillStyle = '#f0f0f0'; ctx.font = 'bold 26px Georgia'; ctx.textAlign = 'center';
-      ctx.fillText('Внутри тепло и уютно...', 550, 45);
+      ctx.fillStyle = '#f0f0f0'; ctx.font = 'bold 26px Georgia'; ctx.textAlign = 'center'; ctx.fillText('Внутри тепло и уютно...', 550, 45);
     }
 
     function drawZoom() {
       ctx.fillStyle = 'rgba(0,0,0,0.96)'; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
       ctx.font = '120px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      const map = {
-        bed:'🛏️',desk:'🖥️',closet:'🚪',fridge:'🧊',hatch:'⬇️',door:'🚪',lever:'🔧',cell:'🔋',
-        greenDoor:'🚪',blueDoor:'🚪',exitDoor:'🚪',table1:'📦',table2:'📜',drawer:'📦',
-        twigs:'🌲',stick:'🪵',bunkerDoor:'🚪',diary:'📖',cabinDoor:'🏠',forestPath:'➡️',
-        lake:'🌊',passage:'➡️',exit:'⬅️',backExit:'⬅️',fireplace:'🔥',bed_cabin:'🛏️'
-      };
+      const map = { bed:'🛏️',desk:'🖥️',closet:'🚪',fridge:'🧊',hatch:'⬇️',door:'🚪',lever:'🔧',cell:'🔋',greenDoor:'🚪',blueDoor:'🚪',exitDoor:'🚪',table1:'📦',table2:'📜',drawer:'📦',twigs:'🌲',stick:'🪵',bunkerDoor:'🚪',diary:'📖',cabinDoor:'🏠',forestPath:'➡️',lake:'🌊',passage:'➡️',exit:'⬅️',backExit:'⬅️',fireplace:'🔥',bed_cabin:'🛏️' };
       ctx.fillText(map[zoomTarget] || '❓', 550, 250);
       ctx.fillStyle = '#fff'; ctx.font = '24px Georgia';
-      const desc = {
-        bed: state.phoneTaken ? 'Телефон уже у вас' : 'Обнаружен телефон 📱',
-        desk: state.keyTaken ? 'Ключ уже у вас' : 'Под клавиатурой ключ 🗝️',
-        closet: state.boxTaken ? 'Шкаф пуст' : (state.phoneTaken ? 'Обнаружена коробка 📦' : 'Темно... Нужен свет 📱'),
-        fridge: state.fridgeMoved ? 'Холодильник сдвинут' : 'Нажмите, чтобы сдвинуть',
-        hatch: state.hatchOpened ? 'Люк открыт! Спуститься?' : 'Подземный люк. Нужна отвертка.',
-        door: state.doorOpened ? 'Дверь открыта!' : (state.powerOn ? 'Дверь можно открыть!' : 'Герметичная дверь'),
-        lever: state.powerOn ? 'Питание подано!' : 'Нужен аккумулятор',
-        cell: state.batteryTaken ? 'Ячейка пуста' : 'Аккумулятор. Нужна отвертка.',
-        greenDoor:'Лаборатория 1', blueDoor: state.blueDoorOpened ? 'Открыто' : 'Нужна карта 1',
-        exitDoor: state.finalExitOpened ? 'Открыто' : 'Нужна карта 2',
-        table1: state.keyCard1 ? 'Карта 1 уже у вас' : 'Зелёная карта 1 уровня',
-        table2: (!state.keyCard2?'Карта 2 ':'')+(!state.letterTaken?'Письмо':''),
-        drawer: state.keyUsed&&state.secretNoteTaken ? 'Пусто' : (state.keyUsed ? 'Возьмите карту' : (state.keyTaken ? 'Используйте ключ' : 'Заперто')),
-        twigs: state.fireStarted ? 'Костёр горит!' : (state.woodTaken ? 'Разожгите палкой' : 'Собрать хворост'),
-        stick: state.stickTaken ? 'Палка у вас' : 'Взять палку',
-        bunkerDoor: state.bunkerUnlocked ? 'Войти!' : 'Нужен огонь',
-        diary:'Дневник лесника', fireplace:'Большой тёплый камин',
-        cabinDoor:'Хижина с трубой', forestPath:'Тропа вперёд', lake:'Озеро',
-        passage:'В генераторную', exit:'Вернуться', backExit:'Выйти', bed_cabin:'Уютная кровать'
-      };
+      const desc = { bed: state.phoneTaken ? 'Телефон уже у вас' : 'Обнаружен телефон 📱', desk: state.keyTaken ? 'Ключ уже у вас' : 'Под клавиатурой ключ 🗝️', closet: state.boxTaken ? 'Шкаф пуст' : (state.phoneTaken ? 'Обнаружена коробка 📦' : 'Темно... Нужен свет 📱'), fridge: state.fridgeMoved ? 'Холодильник сдвинут' : 'Нажмите, чтобы сдвинуть', hatch: state.hatchOpened ? 'Люк открыт! Спуститься?' : 'Подземный люк. Нужна отвертка.', door: state.doorOpened ? 'Дверь открыта!' : (state.powerOn ? 'Дверь можно открыть!' : 'Герметичная дверь'), lever: state.powerOn ? 'Питание подано!' : 'Нужен аккумулятор', cell: state.batteryTaken ? 'Ячейка пуста' : 'Аккумулятор. Нужна отвертка.', greenDoor:'Лаборатория 1', blueDoor: state.blueDoorOpened ? 'Открыто' : 'Нужна карта 1', exitDoor: state.finalExitOpened ? 'Открыто' : 'Нужна карта 2', table1: state.keyCard1 ? 'Карта 1 уже у вас' : 'Зелёная карта 1 уровня', table2: (!state.keyCard2?'Карта 2 ':'')+(!state.letterTaken?'Письмо':''), drawer: state.keyUsed&&state.secretNoteTaken ? 'Пусто' : (state.keyUsed ? 'Возьмите карту' : (state.keyTaken ? 'Используйте ключ' : 'Заперто')), twigs: state.fireStarted ? 'Костёр горит!' : (state.woodTaken ? 'Разожгите палкой' : 'Собрать хворост'), stick: state.stickTaken ? 'Палка у вас' : 'Взять палку', bunkerDoor: state.bunkerUnlocked ? 'Войти!' : 'Нужен огонь', diary:'Дневник лесника', fireplace:'Большой тёплый камин', cabinDoor:'Хижина с трубой', forestPath:'Тропа вперёд', lake:'Озеро', passage:'В генераторную', exit:'Вернуться', backExit:'Выйти', bed_cabin:'Уютная кровать' };
       ctx.fillText(desc[zoomTarget] || '', 550, 390);
+    }
+
+    function showDesc(text) {
+      if (!text) { descEl.classList.remove('visible'); descEl.innerText = ''; return; }
+      descEl.innerText = text;
+      descEl.classList.add('visible');
+      clearTimeout(descEl._timeout);
+      descEl._timeout = setTimeout(() => { descEl.classList.remove('visible'); }, 2500);
     }
 
     function drawScene() {
@@ -995,31 +876,22 @@
       const h = canvas.height / window.devicePixelRatio;
       const time = Date.now() / 1000;
       const dt = 1 / 60;
-      
       ctx.clearRect(0, 0, w, h);
       ctx.save();
       ctx.scale(w / ZOOM_W, h / ZOOM_H);
-      
       updateParticles(dt);
-      
       if (!gameStarted) {
         const bg = ctx.createRadialGradient(550, 200, 50, 300, 300, 950);
         bg.addColorStop(0, '#3d4f5a'); bg.addColorStop(0.5, '#1a252c'); bg.addColorStop(1, '#050508');
         ctx.fillStyle = bg; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
       } else if (viewMode === 'main') {
-        if (level === 1) { drawRoom(time); descEl.innerText = 'Осмотритесь вокруг...'; }
-        else if (level === 2) {
-          if (currentZone === 'basement') { drawBasement(time); descEl.innerText = 'Подвал. Рычаг слева, проход справа.'; }
-          else { drawGenerator(time); descEl.innerText = 'Генераторная.'; }
-        } else if (level === 3) {
-          if (currentZone === 'bunker_hall') { drawBunkerHall(); descEl.innerText = 'Бункер. Выход справа.'; }
-          else if (currentZone === 'lab1') { drawLab1(); descEl.innerText = 'Лаборатория 1.'; }
-          else { drawRestRoom(); descEl.innerText = 'Комната отдыха.'; }
-        } else if (level === 4) { drawForest(time); descEl.innerText = 'Вы выбрались в зимний лес.'; }
-        else if (level === 5) { drawGlade(time); descEl.innerText = 'Поляна. Замёрзший бункер.'; }
-        else if (level === 6) { drawCabin(time); descEl.innerText = 'Внутри хижины...'; }
-      } else { drawZoom(); }
-      
+        if (level === 1) drawRoom(time);
+        else if (level === 2) { if (currentZone === 'basement') drawBasement(time); else drawGenerator(time); }
+        else if (level === 3) { if (currentZone === 'bunker_hall') drawBunkerHall(); else if (currentZone === 'lab1') drawLab1(); else drawRestRoom(); }
+        else if (level === 4) drawForest(time);
+        else if (level === 5) drawGlade(time);
+        else if (level === 6) drawCabin(time);
+      } else drawZoom();
       drawParticlesList();
       ctx.restore();
     }
@@ -1035,20 +907,12 @@
     
     function renderInv() {
       invEl.innerHTML = '';
-      if (!inventory.length) {
-        let d = document.createElement('div'); d.className = 'inv-slot empty'; d.innerText = '—'; invEl.appendChild(d);
-      } else {
+      if (!inventory.length) { let d = document.createElement('div'); d.className = 'inv-slot empty'; d.innerText = '—'; invEl.appendChild(d); }
+      else {
         inventory.forEach(item => {
           let s = document.createElement('div'); s.className = 'inv-slot';
           s.innerText = itemIcons[item] || '❓';
-          s.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (gameWin) return;
-            document.querySelectorAll('.inv-slot').forEach(el => el.classList.remove('selected'));
-            s.classList.add('selected');
-            selectedItem = item;
-            descEl.innerText = `Выбран: ${item}`;
-          });
+          s.addEventListener('click', (e) => { e.stopPropagation(); if (gameWin) return; document.querySelectorAll('.inv-slot').forEach(el => el.classList.remove('selected')); s.classList.add('selected'); selectedItem = item; showDesc(`Выбран: ${item}`); });
           invEl.appendChild(s);
         });
       }
@@ -1063,31 +927,29 @@
 
     function handleZoomClick() {
       let act = false;
-      if (zoomTarget==='bed'&&!state.phoneTaken) { inventory.push('телефон'); state.phoneTaken=true; descEl.innerText='Телефон 📱'; act=true; }
-      else if (zoomTarget==='desk'&&!state.keyTaken) { inventory.push('ключ'); state.keyTaken=true; descEl.innerText='Ключ 🗝️'; act=true; }
-      else if (zoomTarget==='closet'&&state.phoneTaken&&!state.boxTaken) { inventory.push('коробка'); state.boxTaken=true; descEl.innerText='Коробка 📦'; act=true; }
-      else if (zoomTarget==='fridge'&&!state.fridgeMoved) { state.fridgeMoved=true; descEl.innerText='Холодильник сдвинут!'; act=true; }
-      else if (zoomTarget==='hatch'&&state.fridgeMoved&&!state.hatchOpened&&selectedItem==='отвертка') { state.hatchOpened=true; descEl.innerText='Люк открыт!'; act=true; }
+      if (zoomTarget==='bed'&&!state.phoneTaken) { inventory.push('телефон'); state.phoneTaken=true; showDesc('Телефон 📱'); act=true; }
+      else if (zoomTarget==='desk'&&!state.keyTaken) { inventory.push('ключ'); state.keyTaken=true; showDesc('Ключ 🗝️'); act=true; }
+      else if (zoomTarget==='closet'&&state.phoneTaken&&!state.boxTaken) { inventory.push('коробка'); state.boxTaken=true; showDesc('Коробка 📦'); act=true; }
+      else if (zoomTarget==='fridge'&&!state.fridgeMoved) { state.fridgeMoved=true; showDesc('Холодильник сдвинут!'); act=true; }
+      else if (zoomTarget==='hatch'&&state.fridgeMoved&&!state.hatchOpened&&selectedItem==='отвертка') { state.hatchOpened=true; showDesc('Люк открыт!'); act=true; }
       else if (zoomTarget==='hatch'&&state.hatchOpened) { enterLevel2(); return; }
       else if (zoomTarget==='door'&&state.powerOn) { state.doorOpened=true; enterLevel3(); return; }
-      else if (zoomTarget==='lever'&&!state.powerOn&&selectedItem==='аккумулятор') { state.powerOn=true; inventory=inventory.filter(i=>i!=='аккумулятор'); descEl.innerText='Питание подано!'; act=true; }
-      else if (zoomTarget==='cell'&&!state.batteryTaken&&selectedItem==='отвертка') { state.batteryTaken=true; inventory.push('аккумулятор'); descEl.innerText='Аккумулятор 🔋'; act=true; }
-      else if (zoomTarget==='table1'&&!state.keyCard1) { inventory.push('зелёная карта'); state.keyCard1=true; descEl.innerText='Карта 1 🟩'; act=true; }
-      else if (zoomTarget==='table2') { if(!state.keyCard2) { inventory.push('голубая карта'); state.keyCard2=true; descEl.innerText='Карта 2 🟦'; act=true; } if(!state.letterTaken) { state.letterTaken=true; letterOverlay.classList.add('active'); act=true; } }
-      else if (zoomTarget==='drawer'&&!state.keyUsed&&selectedItem==='ключ') { state.keyUsed=true; inventory=inventory.filter(i=>i!=='ключ'); descEl.innerText='Ящик открыт!'; act=true; }
-      else if (zoomTarget==='drawer'&&state.keyUsed&&!state.secretNoteTaken) { state.secretNoteTaken=true; descEl.innerText='Старая карта!'; act=true; }
-      else if (zoomTarget==='twigs'&&!state.woodTaken) { inventory.push('хворост'); state.woodTaken=true; descEl.innerText='Хворост 🌲'; act=true; }
+      else if (zoomTarget==='lever'&&!state.powerOn&&selectedItem==='аккумулятор') { state.powerOn=true; inventory=inventory.filter(i=>i!=='аккумулятор'); showDesc('Питание подано!'); act=true; }
+      else if (zoomTarget==='cell'&&!state.batteryTaken&&selectedItem==='отвертка') { state.batteryTaken=true; inventory.push('аккумулятор'); showDesc('Аккумулятор 🔋'); act=true; }
+      else if (zoomTarget==='table1'&&!state.keyCard1) { inventory.push('зелёная карта'); state.keyCard1=true; showDesc('Карта 1 🟩'); act=true; }
+      else if (zoomTarget==='table2') { if(!state.keyCard2) { inventory.push('голубая карта'); state.keyCard2=true; showDesc('Карта 2 🟦'); act=true; } if(!state.letterTaken) { state.letterTaken=true; letterOverlay.classList.add('active'); act=true; } }
+      else if (zoomTarget==='drawer'&&!state.keyUsed&&selectedItem==='ключ') { state.keyUsed=true; inventory=inventory.filter(i=>i!=='ключ'); showDesc('Ящик открыт!'); act=true; }
+      else if (zoomTarget==='drawer'&&state.keyUsed&&!state.secretNoteTaken) { state.secretNoteTaken=true; showDesc('Старая карта!'); act=true; }
+      else if (zoomTarget==='twigs'&&!state.woodTaken) { inventory.push('хворост'); state.woodTaken=true; showDesc('Хворост 🌲'); act=true; }
       else if (zoomTarget==='twigs'&&state.woodTaken&&selectedItem==='палка'&&!state.fireStarted) {
-        state.fireStarted = true;
-        spawnParticles(150, 440, 30, 'rgb(255,150,0)', 5, 2);
-        descEl.innerText = 'Костёр разожжён! Лёд тает...';
-        setTimeout(() => { state.bunkerUnlocked = true; descEl.innerText = 'Дверь оттаяла! Можно войти!'; drawScene(); }, 2500);
+        state.fireStarted = true; spawnParticles(150, 440, 30, 'rgb(255,150,0)', 5, 2);
+        showDesc('Костёр разожжён! Лёд тает...');
+        setTimeout(() => { state.bunkerUnlocked = true; showDesc('Дверь оттаяла! Можно войти!'); drawScene(); }, 2500);
         act = true;
       }
-      else if (zoomTarget==='stick'&&!state.stickTaken) { inventory.push('палка'); state.stickTaken=true; descEl.innerText='Палка 🪵'; act=true; }
+      else if (zoomTarget==='stick'&&!state.stickTaken) { inventory.push('палка'); state.stickTaken=true; showDesc('Палка 🪵'); act=true; }
       else if (zoomTarget==='bunkerDoor'&&state.bunkerUnlocked) { viewMode='main'; backBtn.style.display='none'; drawScene(); finish(); return; }
       else if (zoomTarget==='diary') { diaryOverlay.classList.add('active'); act=true; }
-
       if (act) { renderInv(); document.querySelectorAll('.inv-slot').forEach(el=>el.classList.remove('selected')); selectedItem=null; }
       viewMode = 'main'; backBtn.style.display = 'none'; drawScene();
     }
@@ -1096,43 +958,19 @@
       if (!gameStarted || gameWin) return;
       const {x, y} = getPos(e);
       if (viewMode === 'zoom') { handleZoomClick(); return; }
-      
       let clicked = null;
-      for (let [k, z] of Object.entries(zones)) {
-        if (k === 'hatch' && !state.fridgeMoved) continue;
-        if (x >= z.x && x <= z.x + z.w && y >= z.y && y <= z.y + z.h) { clicked = k; break; }
-      }
-      
-      if (!clicked) {
-        if (selectedItem === 'коробка' && !state.screwdriverTaken && level === 1) {
-          inventory = inventory.filter(i => i !== 'коробка'); inventory.push('отвертка');
-          state.screwdriverTaken = true; renderInv(); descEl.innerText = 'Отвертка 🪛'; selectedItem = null;
-        }
-        return;
-      }
-      
-      if (clicked === 'hatch' && state.hatchOpened) { enterLevel2(); }
-      else if (clicked === 'passage' && level === 2) { currentZone = 'generator'; updateZones(); descEl.innerText = 'Генераторная.'; }
-      else if (clicked === 'exit' && level === 2) { currentZone = 'basement'; updateZones(); descEl.innerText = 'Подвал.'; }
-      else if (clicked === 'greenDoor' && level === 3) { currentZone = 'lab1'; updateZones(); descEl.innerText = 'Лаборатория 1.'; }
-      else if (clicked === 'blueDoor' && level === 3) {
-        if (state.blueDoorOpened || (state.keyCard1 && selectedItem === 'зелёная карта')) {
-          if (!state.blueDoorOpened) { state.blueDoorOpened = true; inventory = inventory.filter(i => i !== 'зелёная карта'); renderInv(); selectedItem = null; }
-          currentZone = 'rest_room'; updateZones(); descEl.innerText = 'Комната отдыха.';
-        }
-      }
-      else if (clicked === 'exitDoor' && level === 3) {
-        if (state.finalExitOpened) { enterForest(); }
-        else if (state.keyCard2 && selectedItem === 'голубая карта') { state.finalExitOpened = true; inventory = inventory.filter(i => i !== 'голубая карта'); renderInv(); selectedItem = null; descEl.innerText = 'Выход открыт!'; }
-      }
-      else if (clicked === 'backExit') {
-        if (level === 3) currentZone = 'bunker_hall';
-        else if (level === 6) { enterForest(); return; }
-        updateZones(); descEl.innerText = 'Коридор.';
-      }
-      else if (clicked === 'cabinDoor' && level === 4) { enterCabin(); }
-      else if (clicked === 'forestPath' && level === 4) { enterGlade(); }
-      else if (clicked === 'bunkerDoor' && level === 5 && state.bunkerUnlocked) { finish(); }
+      for (let [k, z] of Object.entries(zones)) { if (k === 'hatch' && !state.fridgeMoved) continue; if (x >= z.x && x <= z.x + z.w && y >= z.y && y <= z.y + z.h) { clicked = k; break; } }
+      if (!clicked) { if (selectedItem === 'коробка' && !state.screwdriverTaken && level === 1) { inventory = inventory.filter(i => i !== 'коробка'); inventory.push('отвертка'); state.screwdriverTaken = true; renderInv(); showDesc('Отвертка 🪛'); selectedItem = null; } return; }
+      if (clicked === 'hatch' && state.hatchOpened) enterLevel2();
+      else if (clicked === 'passage' && level === 2) { currentZone = 'generator'; updateZones(); }
+      else if (clicked === 'exit' && level === 2) { currentZone = 'basement'; updateZones(); }
+      else if (clicked === 'greenDoor' && level === 3) { currentZone = 'lab1'; updateZones(); }
+      else if (clicked === 'blueDoor' && level === 3) { if (state.blueDoorOpened || (state.keyCard1 && selectedItem === 'зелёная карта')) { if (!state.blueDoorOpened) { state.blueDoorOpened = true; inventory = inventory.filter(i => i !== 'зелёная карта'); renderInv(); selectedItem = null; } currentZone = 'rest_room'; updateZones(); } }
+      else if (clicked === 'exitDoor' && level === 3) { if (state.finalExitOpened) enterForest(); else if (state.keyCard2 && selectedItem === 'голубая карта') { state.finalExitOpened = true; inventory = inventory.filter(i => i !== 'голубая карта'); renderInv(); selectedItem = null; showDesc('Выход открыт!'); } }
+      else if (clicked === 'backExit') { if (level === 3) currentZone = 'bunker_hall'; else if (level === 6) { enterForest(); return; } updateZones(); }
+      else if (clicked === 'cabinDoor' && level === 4) enterCabin();
+      else if (clicked === 'forestPath' && level === 4) enterGlade();
+      else if (clicked === 'bunkerDoor' && level === 5 && state.bunkerUnlocked) finish();
       else { viewMode = 'zoom'; zoomTarget = clicked; backBtn.style.display = 'block'; }
       drawScene();
     }
@@ -1140,22 +978,17 @@
     canvas.addEventListener('click', onCanvasClick);
     canvas.addEventListener('touchend', (e) => { e.preventDefault(); onCanvasClick(e); });
 
-    function goBack() { viewMode = 'main'; backBtn.style.display = 'none'; drawScene(); descEl.innerText = 'Осмотритесь...'; }
+    function goBack() { viewMode = 'main'; backBtn.style.display = 'none'; drawScene(); }
     backBtn.addEventListener('click', goBack);
     backBtn.addEventListener('touchend', (e) => { e.preventDefault(); goBack(); });
 
     document.getElementById('start-btn').addEventListener('click', startGame);
     document.getElementById('start-btn').addEventListener('touchend', (e) => { e.preventDefault(); startGame(); });
     document.getElementById('letter-close').addEventListener('click', () => letterOverlay.classList.remove('active'));
-    document.getElementById('letter-close').addEventListener('touchend', (e) => { e.preventDefault(); letterOverlay.classList.remove('active'); });
     document.getElementById('diary-close').addEventListener('click', () => diaryOverlay.classList.remove('active'));
-    document.getElementById('diary-close').addEventListener('touchend', (e) => { e.preventDefault(); diaryOverlay.classList.remove('active'); });
 
     function gameLoop() {
-      if (gameStarted) {
-        const needsAnim = level === 1 || level === 2 || level === 4 || level === 5 || (level === 6 && state.cabinEntered);
-        if (needsAnim) drawScene();
-      }
+      if (gameStarted) { const needsAnim = level === 1 || level === 2 || level === 4 || level === 5 || (level === 6 && state.cabinEntered); if (needsAnim) drawScene(); }
       requestAnimationFrame(gameLoop);
     }
     
