@@ -7,237 +7,94 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#000000">
-  <meta name="description" content="Аномалия: Финал - атмосферная игра-квест в зимнем лесу">
-  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%D0%90%D0%BD%D0%BE%D0%BC%D0%B0%D0%BB%D0%B8%D1%8F%3A%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BB%22%2C%22short_name%22%3A%22%D0%90%D0%BD%D0%BE%D0%BC%D0%B0%D0%BB%D0%B8%D1%8F%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22fullscreen%22%2C%22orientation%22%3A%22any%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D">
-  <meta name="apple-mobile-web-app-title" content="Аномалия">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%23000'/%3E%3Ctext x='96' y='110' font-size='80' text-anchor='middle' fill='%23e0a800'%3E⚡%3C/text%3E%3C/svg%3E">
   <title>Аномалия: Финал</title>
   <style>
-    * {
-      margin: 0; padding: 0; box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-      -webkit-user-select: none; user-select: none;
-      -webkit-touch-callout: none;
-    }
-    html, body {
-      position: fixed; overflow: hidden;
-      width: 100%; height: 100%;
-      background: #000; touch-action: manipulation;
-      font-family: 'Georgia', 'Times New Roman', serif;
-      top: 0; left: 0; right: 0; bottom: 0;
-    }
-    body {
-      display: flex; justify-content: center; align-items: center;
-      height: 100vh; height: 100dvh; width: 100vw;
-      color: #f0f0f0;
-      background: radial-gradient(ellipse at center, #1a1a2e 0%, #000 100%);
-    }
-    #game-wrapper {
-      position: relative;
-      width: 100vw; height: 100vh; height: 100dvh;
-      background: #0a0a12;
-      display: flex; justify-content: center; align-items: center;
-      overflow: hidden;
-    }
-    canvas {
-      display: block;
-      touch-action: manipulation;
-      border: none;
-    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html,body { width:100%; height:100%; overflow:hidden; background:#000; touch-action:manipulation; font-family:'Georgia',serif; position:fixed; top:0; left:0; }
+    body { display:flex; justify-content:center; align-items:center; background:radial-gradient(ellipse at center, #1a1a2e 0%, #000 100%); }
+    #game-wrapper { width:100vw; height:100vh; height:100dvh; background:#0a0a12; position:relative; overflow:hidden; }
+    canvas { display:block; position:absolute; top:0; left:0; touch-action:manipulation; }
 
     #lobby-layer {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      display: flex; justify-content: center; align-items: center; flex-direction: column;
-      z-index: 30;
-      background: radial-gradient(ellipse at center, rgba(15,15,25,0.94) 0%, rgba(0,0,0,0.98) 100%);
-      transition: opacity 0.5s ease; padding: 1rem;
-      pointer-events: auto;
+      position:absolute; top:0; left:0; width:100%; height:100%;
+      display:flex; justify-content:center; align-items:center; flex-direction:column;
+      z-index:30; background:rgba(10,10,20,0.96);
+      transition:opacity 0.5s; pointer-events:auto;
     }
-    #lobby-layer.hidden { opacity: 0; pointer-events: none; }
+    #lobby-layer.hidden { opacity:0; pointer-events:none; }
+    .lobby-title { font-size:clamp(2rem, 8vw, 5rem); color:#e0a800; text-shadow:0 0 30px rgba(224,168,0,0.4); letter-spacing:0.3em; font-weight:bold; margin-bottom:0.5rem; text-align:center; }
+    .lobby-subtitle { font-size:clamp(0.8rem, 2.5vw, 1.4rem); color:#8899aa; letter-spacing:0.3em; margin-bottom:2.5rem; text-align:center; }
+    .lobby-btn { background:linear-gradient(180deg, #f1c40f, #b8860b); border:none; color:#0a0a0a; padding:1rem 2.5rem; border-radius:2.5rem; font-weight:bold; font-size:clamp(1rem, 3.5vw, 1.6rem); cursor:pointer; letter-spacing:0.1em; transition:0.15s; }
+    .lobby-btn:active { transform:scale(0.94); }
 
-    .lobby-title {
-      font-size: clamp(2rem, 9vw, 5rem);
-      color: #e0a800;
-      text-shadow: 0 0 8vh rgba(224,168,0,0.5);
-      letter-spacing: 0.3em; font-weight: bold;
-      margin-bottom: 0.5rem; text-align: center;
-    }
-
-    .lobby-subtitle {
-      font-size: clamp(0.9rem, 3vw, 1.6rem);
-      color: #8899aa; letter-spacing: 0.4em;
-      margin-bottom: 3rem; text-align: center;
-    }
-
-    .lobby-btn {
-      background: linear-gradient(180deg, #f1c40f 0%, #b8860b 70%, #8b6508 100%);
-      border: none; color: #0a0a0a;
-      padding: 1.2rem 3.5rem; border-radius: 3rem;
-      font-weight: bold; font-size: clamp(1.1rem, 4vw, 2rem);
-      cursor: pointer; font-family: inherit; letter-spacing: 0.15em;
-      box-shadow: 0 0 6vh rgba(224,168,0,0.4);
-      transition: all 0.2s; touch-action: manipulation;
-      text-transform: uppercase;
-    }
-    .lobby-btn:active { transform: scale(0.94); }
-
-    #ui-layer {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none; display: none;
-    }
+    #ui-layer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none; }
 
     #ui-inventory {
-      position: absolute;
-      top: max(0.5rem, env(safe-area-inset-top, 0.5rem));
-      left: 0.5rem;
-      background: rgba(8,8,15,0.9); backdrop-filter: blur(12px);
-      padding: 0.5rem; border-radius: 1.5rem;
-      border: 1px solid rgba(120,120,140,0.3);
-      pointer-events: auto; display: flex; gap: 0.5rem;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.6);
-      flex-wrap: wrap; max-width: calc(100vw - 2rem);
+      position:absolute; top:8px; left:8px;
+      background:rgba(8,8,15,0.92); backdrop-filter:blur(10px);
+      padding:6px; border-radius:16px; border:1px solid rgba(120,120,140,0.3);
+      pointer-events:auto; display:flex; gap:5px; flex-wrap:wrap;
+      max-width:calc(100vw - 16px);
     }
-
     .inv-slot {
-      width: clamp(36px, 10vw, 54px); height: clamp(36px, 10vw, 54px);
-      background: radial-gradient(circle at 35% 35%, #2a2a3e, #14142a);
-      border: 2px solid #3a3a4e; border-radius: 1rem;
-      display: flex; justify-content: center; align-items: center;
-      font-size: clamp(1.2rem, 4.5vw, 1.8rem);
-      cursor: pointer; transition: all 0.15s; touch-action: manipulation;
+      width:42px; height:42px;
+      background:radial-gradient(circle at 35% 35%, #2a2a3e, #14142a);
+      border:2px solid #3a3a4e; border-radius:10px;
+      display:flex; justify-content:center; align-items:center;
+      font-size:1.3rem; cursor:pointer; transition:0.1s;
     }
-    .inv-slot:active { transform: scale(0.9); background: #333; border-color: #888; }
-    .inv-slot.selected {
-      border-color: #f1c40f;
-      box-shadow: 0 0 2rem rgba(241,196,15,0.5);
-      background: radial-gradient(circle at 35% 35%, #4a4a20, #1a1a0a);
-    }
-    .inv-slot.empty { color: #333; cursor: default; font-size: 0.7rem; pointer-events: none; background: #0f0f1a; }
+    @media (min-width:768px) { .inv-slot { width:50px; height:50px; font-size:1.5rem; } }
+    .inv-slot:active { transform:scale(0.9); }
+    .inv-slot.selected { border-color:#f1c40f; box-shadow:0 0 15px rgba(241,196,15,0.4); }
+    .inv-slot.empty { color:#333; font-size:0.7rem; pointer-events:none; }
 
     #ui-desc {
-      position: absolute;
-      bottom: max(1rem, env(safe-area-inset-bottom, 1rem));
-      left: 50%; transform: translateX(-50%);
-      background: rgba(8,8,15,0.9); backdrop-filter: blur(16px);
-      padding: 0.6rem 1.4rem; border-radius: 2.5rem;
-      font-size: clamp(0.7rem, 2.2vw, 1rem);
-      color: #e0e0e0; border: 1px solid rgba(150,150,170,0.2);
-      pointer-events: none; text-align: center; white-space: nowrap;
-      opacity: 0; transition: opacity 0.3s;
-      max-width: 75vw;
+      position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+      background:rgba(8,8,15,0.92); backdrop-filter:blur(12px);
+      padding:6px 16px; border-radius:20px;
+      font-size:clamp(0.7rem, 2vw, 0.9rem); color:#e0e0e0;
+      pointer-events:none; text-align:center; white-space:nowrap;
+      opacity:0; transition:opacity 0.3s; max-width:75vw;
     }
-    #ui-desc.visible { opacity: 1; }
+    #ui-desc.visible { opacity:1; }
 
     #ui-back {
-      position: absolute;
-      bottom: max(1rem, env(safe-area-inset-bottom, 1rem));
-      right: 0.5rem;
-      background: rgba(20,20,30,0.9); backdrop-filter: blur(12px);
-      border: 2px solid #555; color: #ccc;
-      padding: 0.5rem 1rem; border-radius: 2rem;
-      cursor: pointer; font-size: clamp(0.7rem, 2.2vw, 1rem);
-      pointer-events: auto; display: none;
-      transition: all 0.15s; touch-action: manipulation;
+      position:absolute; bottom:16px; right:8px;
+      background:rgba(20,20,30,0.92); border:2px solid #555; color:#ccc;
+      padding:6px 12px; border-radius:18px;
+      cursor:pointer; font-size:clamp(0.7rem, 2vw, 0.9rem);
+      pointer-events:auto; display:none; transition:0.1s;
     }
-    #ui-back:active { border-color: #aaa; color: #fff; background: #333; }
+    #ui-back:active { background:#333; }
 
     #win-screen {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      display: none; justify-content: center; align-items: center; flex-direction: column;
-      background: rgba(0,0,0,0.94); z-index: 20;
-      padding: 2rem; text-align: center;
+      position:absolute; top:0; left:0; width:100%; height:100%;
+      display:none; justify-content:center; align-items:center; flex-direction:column;
+      background:rgba(0,0,0,0.94); z-index:20; padding:2rem; text-align:center;
     }
-    #win-screen h1 {
-      color: #00ffcc; font-size: clamp(2rem, 8vw, 4rem);
-      letter-spacing: 0.2em;
-      text-shadow: 0 0 6vh rgba(0,255,204,0.5);
-      font-weight: 300; margin-bottom: 1.5rem;
-    }
-    #win-screen p {
-      color: #bbb; font-size: clamp(1rem, 3vw, 1.6rem);
-      max-width: 80vw; line-height: 1.6; margin-bottom: 2.5rem;
-    }
-    #win-screen .final-btn {
-      background: linear-gradient(180deg, #f1c40f 0%, #b8860b 70%, #8b6508 100%);
-      border: none; color: #0a0a0a;
-      padding: 1rem 3rem; border-radius: 3rem;
-      font-weight: bold; font-size: clamp(1rem, 3vw, 1.5rem);
-      cursor: pointer;
-    }
-    #win-screen .final-btn:active { transform: scale(0.94); }
+    #win-screen h1 { color:#00ffcc; font-size:clamp(2rem, 7vw, 3.5rem); margin-bottom:1rem; }
+    #win-screen p { color:#bbb; font-size:clamp(0.9rem, 2.5vw, 1.3rem); max-width:80vw; margin-bottom:2rem; }
+    #win-screen .final-btn { background:linear-gradient(180deg, #f1c40f, #b8860b); border:none; color:#0a0a0a; padding:0.8rem 2rem; border-radius:2.5rem; font-weight:bold; font-size:clamp(0.9rem, 2.5vw, 1.3rem); cursor:pointer; }
 
     #letter-overlay, #diary-overlay {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      display: none; justify-content: center; align-items: center;
-      background: rgba(0,0,0,0.92); backdrop-filter: blur(16px);
-      z-index: 40; flex-direction: column; padding: 1rem;
+      position:absolute; top:0; left:0; width:100%; height:100%;
+      display:none; justify-content:center; align-items:center;
+      background:rgba(0,0,0,0.93); z-index:40; flex-direction:column; padding:1rem;
     }
-    #letter-overlay.active, #diary-overlay.active { display: flex; }
+    #letter-overlay.active, #diary-overlay.active { display:flex; }
+    #letter-content { background:#f4e4c1; padding:1.5rem; border-radius:1rem; max-width:min(90vw, 450px); color:#1a1008; font-size:clamp(0.85rem, 2.2vw, 1.2rem); line-height:1.5; max-height:65vh; overflow-y:auto; }
+    #diary-content { background:#1a1a2e; padding:1.5rem; border-radius:1rem; max-width:min(90vw, 450px); color:#d0d0e0; font-size:clamp(0.85rem, 2.2vw, 1.2rem); line-height:1.5; border:1px solid #444; max-height:65vh; overflow-y:auto; }
+    #letter-close, #diary-close { margin-top:1rem; background:#2a1a10; color:#f4e4c1; border:none; padding:0.6rem 1.5rem; border-radius:1.8rem; font-weight:bold; cursor:pointer; font-size:clamp(0.8rem, 2vw, 1rem); }
+    #diary-close { background:linear-gradient(180deg, #e0a800, #b8860b); color:#0a0a0a; }
 
-    #letter-content {
-      background: #f4e4c1;
-      padding: 1.5rem; border-radius: 1rem;
-      max-width: min(90vw, 480px); color: #1a1008;
-      font-size: clamp(0.85rem, 2.5vw, 1.3rem);
-      line-height: 1.6; font-family: 'Georgia', serif;
-      max-height: 65vh; overflow-y: auto;
-    }
-    #diary-content {
-      background: #1a1a2e;
-      padding: 1.5rem; border-radius: 1rem;
-      max-width: min(90vw, 480px); color: #d0d0e0;
-      font-size: clamp(0.85rem, 2.5vw, 1.3rem);
-      line-height: 1.6; font-family: 'Georgia', serif;
-      border: 1px solid #444;
-      max-height: 65vh; overflow-y: auto;
-    }
-    #letter-close, #diary-close {
-      margin-top: 1rem; background: #2a1a10; color: #f4e4c1;
-      border: none; padding: 0.7rem 1.8rem; cursor: pointer;
-      border-radius: 2rem; font-size: clamp(0.8rem, 2.2vw, 1.1rem);
-      font-weight: bold;
-    }
-    #diary-close { background: linear-gradient(180deg, #e0a800 0%, #b8860b 100%); color: #0a0a0a; }
-    #letter-close:active, #diary-close:active { transform: scale(0.94); }
-
-    #loading {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      display: flex; justify-content: center; align-items: center;
-      background: #000; z-index: 60;
-      color: #777; font-size: clamp(1rem, 3vw, 1.5rem);
-      letter-spacing: 0.3em; transition: opacity 1s;
-    }
-    #loading.hidden { opacity: 0; pointer-events: none; }
-
-    #fullscreen-btn {
-      position: absolute;
-      top: max(0.5rem, env(safe-area-inset-top, 0.5rem));
-      right: 0.5rem;
-      width: 34px; height: 34px;
-      background: rgba(15,15,25,0.85); backdrop-filter: blur(12px);
-      border: 2px solid rgba(180,180,200,0.4); border-radius: 0.8rem;
-      color: #ddd; font-size: 1rem;
-      cursor: pointer; z-index: 35;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s; touch-action: manipulation;
-      pointer-events: auto;
-    }
-    #fullscreen-btn:active { transform: scale(0.9); background: #333; border-color: #fff; color: #fff; }
-    #fullscreen-btn.hidden { display: none; }
-
-    @media (min-width: 768px) {
-      .inv-slot { width: 50px; height: 50px; font-size: 1.6rem; border-radius: 1.2rem; }
-      #ui-desc { font-size: 0.9rem; }
-      #fullscreen-btn { width: 40px; height: 40px; font-size: 1.2rem; }
-    }
+    #loading { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#000; z-index:60; color:#777; font-size:clamp(1rem, 3vw, 1.5rem); letter-spacing:0.3em; transition:opacity 0.8s; }
+    #loading.hidden { opacity:0; pointer-events:none; }
   </style>
 </head>
 <body>
 <div id="game-wrapper">
   <div id="loading">ЗАГРУЗКА...</div>
   <canvas id="game-canvas"></canvas>
-
-  <button id="fullscreen-btn" class="hidden" title="Полный экран">⛶</button>
 
   <div id="lobby-layer">
     <div class="lobby-title">АНОМАЛИЯ</div>
@@ -278,7 +135,7 @@
 (function(){
   const canvas=document.getElementById('game-canvas');
   const ctx=canvas.getContext('2d');
-  const gameWrapper=document.getElementById('game-wrapper');
+  const wrapper=document.getElementById('game-wrapper');
   const loading=document.getElementById('loading');
   const lobby=document.getElementById('lobby-layer');
   const uiLayer=document.getElementById('ui-layer');
@@ -288,436 +145,277 @@
   const winScreen=document.getElementById('win-screen');
   const letterOverlay=document.getElementById('letter-overlay');
   const diaryOverlay=document.getElementById('diary-overlay');
-  const fullscreenBtn=document.getElementById('fullscreen-btn');
 
-  // ========== FULLSCREEN ==========
-  function isFullscreen() {
-    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+  // ========== STATE ==========
+  let inventory=[], selectedItem=null, viewMode='main', zoomTarget=null;
+  let gameWin=false, gameStarted=false, level=1, currentZone='room';
+  const state={phoneTaken:false,keyTaken:false,boxTaken:false,screwdriverTaken:false,fridgeMoved:false,hatchOpened:false,powerOn:false,doorOpened:false,batteryTaken:false,keyCard1:false,keyCard2:false,blueDoorOpened:false,finalExitOpened:false,keyUsed:false,secretNoteTaken:false,letterTaken:false,stickTaken:false,woodTaken:false,fireStarted:false,bunkerUnlocked:false,cabinEntered:false};
+  const icons={'телефон':'📱','ключ':'🗝️','коробка':'📦','отвертка':'🪛','аккумулятор':'🔋','зелёная карта':'🟩','голубая карта':'🟦','палка':'🪵','хворост':'🌲'};
+  const ZOOM_W=1100,ZOOM_H=620;
+  let zones={};
+
+  function setZones(){
+    if(level===1)zones={bed:{x:310,y:430,w:190,h:140},desk:{x:510,y:410,w:280,h:150},closet:{x:900,y:40,w:160,h:320},fridge:{x:15,y:70,w:110,h:360},hatch:{x:130,y:440,w:120,h:100}};
+    else if(level===2&&currentZone==='basement')zones={lever:{x:130,y:120,w:160,h:260},door:{x:430,y:80,w:240,h:380},passage:{x:840,y:100,w:230,h:420}};
+    else if(level===2&&currentZone==='generator')zones={cell:{x:50,y:120,w:180,h:340},exit:{x:840,y:100,w:230,h:420}};
+    else if(level===3&&currentZone==='bunker_hall')zones={exitDoor:{x:680,y:100,w:200,h:320},greenDoor:{x:260,y:100,w:170,h:320},blueDoor:{x:460,y:100,w:170,h:320}};
+    else if(level===3&&currentZone==='lab1')zones={table1:{x:350,y:350,w:400,h:180},backExit:{x:850,y:100,w:220,h:420}};
+    else if(level===3&&currentZone==='rest_room')zones={table2:{x:350,y:350,w:400,h:180},drawer:{x:280,y:360,w:100,h:90},backExit:{x:850,y:100,w:220,h:420}};
+    else if(level===4)zones={cabinDoor:{x:80,y:260,w:200,h:200},forestPath:{x:520,y:250,w:200,h:220},lake:{x:830,y:340,w:200,h:180}};
+    else if(level===5)zones={twigs:{x:60,y:370,w:220,h:130},stick:{x:330,y:430,w:150,h:90},bunkerDoor:{x:430,y:130,w:240,h:300}};
+    else if(level===6)zones={diary:{x:460,y:350,w:180,h:35},fireplace:{x:50,y:240,w:180,h:220},bed_cabin:{x:680,y:350,w:140,h:100},backExit:{x:780,y:100,w:220,h:420}};
   }
 
-  function enterFullscreen() {
-    const el = document.documentElement;
-    const method = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-    if (method) {
-      method.call(el).catch(() => {
-        const fallback = gameWrapper.requestFullscreen || gameWrapper.webkitRequestFullscreen || gameWrapper.mozRequestFullScreen || gameWrapper.msRequestFullscreen;
-        if (fallback) fallback.call(gameWrapper).catch(() => {});
-      });
-    }
+  function resizeCanvas(){
+    const r=wrapper.getBoundingClientRect();
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=r.width*dpr;
+    canvas.height=r.height*dpr;
+    canvas.style.width=r.width+'px';
+    canvas.style.height=r.height+'px';
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.scale(dpr,dpr);
   }
 
-  function exitFullscreen() {
-    const method = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-    if (method) method.call(document).catch(() => {});
+  function getPos(e){
+    const r=canvas.getBoundingClientRect();
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    const cy=e.touches?e.touches[0].clientY:e.clientY;
+    return{x:(cx-r.left)*(ZOOM_W/r.width),y:(cy-r.top)*(ZOOM_H/r.height)};
   }
 
-  function toggleFullscreen() {
-    if (isFullscreen()) exitFullscreen();
-    else enterFullscreen();
+  // ========== DRAWING ==========
+  function floor(y,c1,c2,t){
+    const g=ctx.createLinearGradient(0,y,0,ZOOM_H);g.addColorStop(0,c1);g.addColorStop(1,c2);
+    ctx.fillStyle=g;ctx.fillRect(0,y,ZOOM_W,ZOOM_H-y);
+    ctx.strokeStyle='rgba(0,0,0,0.2)';ctx.lineWidth=1.5;
+    if(t==='wood')for(let i=y+15;i<ZOOM_H;i+=25){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(ZOOM_W,i);ctx.stroke()}
+    else if(t==='concrete')for(let i=0;i<ZOOM_W;i+=60){ctx.beginPath();ctx.moveTo(i,y);ctx.lineTo(i,ZOOM_H);ctx.stroke()}
+    ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(0,y-2,ZOOM_W,4);
   }
 
-  function updateFullscreenIcon() {
-    fullscreenBtn.innerHTML = isFullscreen() ? '⛶' : '⛶';
+  function fire(x,y,s){
+    const gl=ctx.createRadialGradient(x,y-s*0.2,s*0.05,x,y,s*1.3);
+    gl.addColorStop(0,'rgba(255,200,50,0.5)');gl.addColorStop(0.4,'rgba(255,100,20,0.2)');gl.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gl;ctx.fillRect(x-s*2,y-s*2,s*4,s*3);
+    const gr=ctx.createLinearGradient(x,y,x,y-s);
+    gr.addColorStop(0,'rgba(255,200,50,0.8)');gr.addColorStop(0.3,'rgba(255,120,20,0.6)');gr.addColorStop(0.6,'rgba(200,50,0,0.3)');gr.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(x-s*0.3,y);ctx.quadraticCurveTo(x,y-s*0.7,x,y-s);ctx.quadraticCurveTo(x,y-s*0.7,x+s*0.3,y);ctx.fill();
+    const cr=ctx.createRadialGradient(x,y-s*0.1,0,x,y-s*0.1,s*0.12);
+    cr.addColorStop(0,'rgba(255,255,255,0.9)');cr.addColorStop(1,'rgba(255,150,50,0)');
+    ctx.fillStyle=cr;ctx.beginPath();ctx.arc(x,y-s*0.1,s*0.12,0,Math.PI*2);ctx.fill();
   }
 
-  document.addEventListener('fullscreenchange', () => {
-    updateFullscreenIcon();
-    setTimeout(() => { resizeCanvas(); drawScene(); }, 150);
-  });
-  document.addEventListener('webkitfullscreenchange', () => {
-    updateFullscreenIcon();
-    setTimeout(() => { resizeCanvas(); drawScene(); }, 150);
-  });
-
-  fullscreenBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleFullscreen(); });
-  fullscreenBtn.addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); toggleFullscreen(); });
-
-  function showFullscreenBtn() {
-    fullscreenBtn.classList.remove('hidden');
-    updateFullscreenIcon();
+  function drawRoom(){
+    ctx.fillStyle='#1a2228';ctx.fillRect(0,0,ZOOM_W,440);
+    floor(440,'#6a5a4a','#2a1a0a','wood');
+    ctx.fillStyle='#1c2833';ctx.fillRect(320,70,460,240);
+    ctx.strokeStyle='#3e2723';ctx.lineWidth=12;ctx.strokeRect(320,70,460,240);
+    ctx.beginPath();ctx.moveTo(550,70);ctx.lineTo(550,310);ctx.stroke();
+    ctx.fillStyle='#1e3a5f';ctx.fillRect(310,470,200,110);
+    ctx.fillStyle='#f5f5f5';ctx.beginPath();ctx.ellipse(350,500,28,16,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#5d4037';ctx.fillRect(510,480,290,90);
+    ctx.fillStyle='#111';ctx.fillRect(560,440,190,50);
+    ctx.fillStyle='#00bfff';ctx.font='11px monospace';ctx.textAlign='center';ctx.fillText('ПОИСК СИГНАЛА...',655,470);
+    ctx.fillStyle='#4e342e';ctx.fillRect(890,60,190,330);
+    let fx=state.fridgeMoved?-100:10;
+    ctx.fillStyle='#d0d0d0';ctx.fillRect(fx,60,110,370);
+    if(state.fridgeMoved){ctx.fillStyle='#1a1a1a';ctx.fillRect(120,450,130,110);if(state.hatchOpened){ctx.fillStyle='#00ffcc';ctx.font='bold 15px sans-serif';ctx.textAlign='center';ctx.fillText('⬇ ОТКРЫТ',185,520)}}
   }
 
-  // ========== GAME STATE ==========
-  let inventory = [], selectedItem = null, viewMode = 'main', zoomTarget = null;
-  let gameWin = false, gameStarted = false, level = 1, currentZone = 'room';
-  const state = {
-    phoneTaken: false, keyTaken: false, boxTaken: false, screwdriverTaken: false,
-    fridgeMoved: false, hatchOpened: false, powerOn: false, doorOpened: false,
-    batteryTaken: false, keyCard1: false, keyCard2: false,
-    blueDoorOpened: false, finalExitOpened: false,
-    keyUsed: false, secretNoteTaken: false, letterTaken: false,
-    stickTaken: false, woodTaken: false, fireStarted: false,
-    bunkerUnlocked: false, cabinEntered: false
-  };
-  const itemIcons = {
-    'телефон':'📱','ключ':'🗝️','коробка':'📦','отвертка':'🪛','аккумулятор':'🔋',
-    'зелёная карта':'🟩','голубая карта':'🟦','палка':'🪵','хворост':'🌲'
-  };
-  const ZOOM_W = 1100, ZOOM_H = 620;
-  let zones = {};
-
-  function updateZones() {
-    if (level === 1) zones = {bed:{x:310,y:430,w:190,h:140},desk:{x:510,y:410,w:280,h:150},closet:{x:900,y:40,w:160,h:320},fridge:{x:15,y:70,w:110,h:360},hatch:{x:130,y:440,w:120,h:100}};
-    else if (level === 2 && currentZone === 'basement') zones = {lever:{x:130,y:120,w:160,h:260},door:{x:430,y:80,w:240,h:380},passage:{x:840,y:100,w:230,h:420}};
-    else if (level === 2 && currentZone === 'generator') zones = {cell:{x:50,y:120,w:180,h:340},exit:{x:840,y:100,w:230,h:420}};
-    else if (level === 3 && currentZone === 'bunker_hall') zones = {exitDoor:{x:680,y:100,w:200,h:320},greenDoor:{x:260,y:100,w:170,h:320},blueDoor:{x:460,y:100,w:170,h:320}};
-    else if (level === 3 && currentZone === 'lab1') zones = {table1:{x:350,y:350,w:400,h:180},backExit:{x:850,y:100,w:220,h:420}};
-    else if (level === 3 && currentZone === 'rest_room') zones = {table2:{x:350,y:350,w:400,h:180},drawer:{x:280,y:360,w:100,h:90},backExit:{x:850,y:100,w:220,h:420}};
-    else if (level === 4) zones = {cabinDoor:{x:80,y:260,w:200,h:200},forestPath:{x:520,y:250,w:200,h:220},lake:{x:830,y:340,w:200,h:180}};
-    else if (level === 5) zones = {twigs:{x:60,y:370,w:220,h:130},stick:{x:330,y:430,w:150,h:90},bunkerDoor:{x:430,y:130,w:240,h:300}};
-    else if (level === 6) zones = {diary:{x:460,y:350,w:180,h:35},fireplace:{x:50,y:240,w:180,h:220},bed_cabin:{x:680,y:350,w:140,h:100},backExit:{x:780,y:100,w:220,h:420}};
+  function drawBasement(){
+    ctx.fillStyle='#1a1a2e';ctx.fillRect(0,0,ZOOM_W,420);
+    floor(420,'#3a3a3a','#1a1a1a','stone');
+    ctx.fillStyle='#8d6e63';ctx.fillRect(75,200,50,25);fire(100,210,25);
+    ctx.fillStyle='#37474f';ctx.fillRect(145,130,70,210);
+    ctx.fillStyle=state.powerOn?'#00ffcc':'#ff1744';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText(state.powerOn?'⚡ ПИТАНИЕ':'⚠ НЕТ',180,110);
+    ctx.fillStyle='#3e2723';ctx.fillRect(440,80,220,380);
+    ctx.fillStyle='#78909c';ctx.beginPath();ctx.arc(550,270,35,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=state.doorOpened?'#00ffcc':(state.powerOn?'#ffeb3b':'#ff1744');ctx.font='bold 18px sans-serif';ctx.fillText(state.doorOpened?'ОТКРЫТО':(state.powerOn?'НАЖМИТЕ':'🔒 ЗАКРЫТО'),550,220);
+    ctx.fillStyle='#0a0a0e';ctx.fillRect(840,80,250,420);ctx.fillStyle='#555';ctx.font='15px sans-serif';ctx.fillText('➡ ГЕНЕРАТОРНАЯ',965,460);
   }
 
-  function resizeCanvas() {
-    const rect = gameWrapper.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(dpr, dpr);
+  function drawGenerator(){
+    ctx.fillStyle='#2c3e50';ctx.fillRect(0,0,ZOOM_W,400);floor(400,'#4a4a4a','#2a2a2a','concrete');
+    ctx.fillStyle='#2c2c2c';ctx.fillRect(55,140,150,280);
+    if(state.batteryTaken){ctx.fillStyle='#555';ctx.font='18px sans-serif';ctx.textAlign='center';ctx.fillText('ПУСТО',130,290)}else{ctx.fillStyle='#f1c40f';ctx.font='45px sans-serif';ctx.fillText('🔋',130,270)}
+    ctx.fillStyle='#0a0a0e';ctx.fillRect(840,80,250,420);ctx.fillStyle='#555';ctx.font='15px sans-serif';ctx.fillText('⬅ НАЗАД',965,460);
   }
 
-  function getPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    const cx = e.touches ? e.touches[0].clientX : e.clientX;
-    const cy = e.touches ? e.touches[0].clientY : e.clientY;
-    return {
-      x: (cx - rect.left) * (ZOOM_W / rect.width),
-      y: (cy - rect.top) * (ZOOM_H / rect.height)
-    };
+  function drawBunkerHall(){
+    ctx.fillStyle='#1a1a2e';ctx.fillRect(0,0,ZOOM_W,400);floor(400,'#3a3a4a','#1a1a2a','concrete');
+    ctx.fillStyle='#3e2723';ctx.fillRect(670,90,220,340);ctx.fillStyle='#fff';ctx.font='bold 20px sans-serif';ctx.textAlign='center';ctx.fillText('🚪 ВЫХОД',780,260);
+    ctx.fillStyle=state.finalExitOpened?'#00ffcc':'#ff1744';ctx.font='15px sans-serif';ctx.fillText(state.finalExitOpened?'ОТКРЫТО':'КАРТА 2',780,300);
+    ctx.fillStyle='#2e7d32';ctx.fillRect(250,110,180,300);ctx.fillStyle='#fff';ctx.font='bold 18px sans-serif';ctx.fillText('🚪 ЛАБ 1',340,260);
+    ctx.fillStyle='#1565c0';ctx.fillRect(450,110,180,300);ctx.fillStyle='#fff';ctx.font='bold 18px sans-serif';
+    if(state.blueDoorOpened){ctx.fillStyle='#00ffcc';ctx.fillText('🚪 ОТКРЫТО',540,260)}else{ctx.fillText('🚪 ОТДЫХ',540,260);ctx.fillStyle='#ff1744';ctx.font='13px sans-serif';ctx.fillText('Закрыто',540,300)}
   }
 
-  // ========== STATIC FIRE (без анимации) ==========
-  function drawStaticFire(x, y, size) {
-    // Свечение
-    const glow = ctx.createRadialGradient(x, y - size * 0.2, size * 0.05, x, y, size * 1.3);
-    glow.addColorStop(0, 'rgba(255, 200, 50, 0.5)');
-    glow.addColorStop(0.4, 'rgba(255, 100, 20, 0.2)');
-    glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(x - size * 2, y - size * 2, size * 4, size * 3);
+  function drawLab1(){ctx.fillStyle='#37474f';ctx.fillRect(0,0,ZOOM_W,400);floor(400,'#4a5a6a','#2a3a4a','concrete');ctx.fillStyle='#5d4037';ctx.fillRect(370,370,360,80);ctx.fillStyle=state.keyCard1?'#666':'#00ff00';ctx.font='20px sans-serif';ctx.textAlign='center';ctx.fillText(state.keyCard1?'Карта взята':'🟩 Карта 1 уровня',550,420);ctx.fillStyle='#0a0a0e';ctx.fillRect(860,80,200,420);ctx.fillStyle='#555';ctx.font='15px sans-serif';ctx.fillText('⬅ ВЫХОД',960,290)}
+  function drawRestRoom(){ctx.fillStyle='#1a1a2e';ctx.fillRect(0,0,ZOOM_W,400);floor(400,'#3a3a4a','#1a1a2a','concrete');ctx.fillStyle='#5d4037';ctx.fillRect(370,370,360,80);let items=[];if(!state.keyCard2)items.push('🟦 Карта 2');if(!state.letterTaken)items.push('📜 Письмо');ctx.fillStyle='#448aff';ctx.font='18px sans-serif';ctx.textAlign='center';ctx.fillText(items.length?items.join(' & '):'Всё взято',550,420);ctx.fillStyle='#3e2723';ctx.fillRect(285,375,85,65);ctx.fillStyle=state.keyUsed&&state.secretNoteTaken?'#555':(state.keyUsed?'#f1c40f':(state.keyTaken?'#ffeb3b':'#444'));ctx.font='15px sans-serif';ctx.textAlign='center';ctx.fillText(state.keyUsed&&state.secretNoteTaken?'Пусто':(state.keyUsed?'🗺️':(state.keyTaken?'🔑':'🔒')),327,412);ctx.fillStyle='#0a0a0e';ctx.fillRect(860,80,200,420);ctx.fillStyle='#555';ctx.font='15px sans-serif';ctx.fillText('⬅ ВЫХОД',960,290)}
 
-    // Огонь (статичный)
-    const grad = ctx.createLinearGradient(x, y, x, y - size);
-    grad.addColorStop(0, 'rgba(255, 200, 50, 0.8)');
-    grad.addColorStop(0.3, 'rgba(255, 120, 20, 0.6)');
-    grad.addColorStop(0.6, 'rgba(200, 50, 0, 0.3)');
-    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.moveTo(x - size * 0.3, y);
-    ctx.quadraticCurveTo(x, y - size * 0.7, x, y - size);
-    ctx.quadraticCurveTo(x, y - size * 0.7, x + size * 0.3, y);
-    ctx.fill();
-
-    // Ядро
-    const core = ctx.createRadialGradient(x, y - size * 0.1, 0, x, y - size * 0.1, size * 0.12);
-    core.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-    core.addColorStop(1, 'rgba(255, 150, 50, 0)');
-    ctx.fillStyle = core;
-    ctx.beginPath();
-    ctx.arc(x, y - size * 0.1, size * 0.12, 0, Math.PI * 2);
-    ctx.fill();
+  function drawForest(time){
+    const sg=ctx.createLinearGradient(0,0,0,380);sg.addColorStop(0,'#2c3e50');sg.addColorStop(0.5,'#5a7a8a');sg.addColorStop(1,'#c0d8e8');ctx.fillStyle=sg;ctx.fillRect(0,0,ZOOM_W,380);
+    for(let i=0;i<8;i++){let x=30+i*130;ctx.fillStyle='#1a2a1a';ctx.beginPath();ctx.moveTo(x,360);ctx.lineTo(x+30,190);ctx.lineTo(x+60,360);ctx.fill()}
+    ctx.fillStyle='#d0dce8';ctx.fillRect(0,360,ZOOM_W,ZOOM_H-360);
+    ctx.fillStyle='#5d4037';ctx.fillRect(80,260,220,220);ctx.fillStyle='#4a3020';ctx.beginPath();ctx.moveTo(60,260);ctx.lineTo(190,170);ctx.lineTo(320,260);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#e8f0f8';ctx.beginPath();ctx.moveTo(65,255);ctx.lineTo(190,175);ctx.lineTo(315,255);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#3e2723';ctx.fillRect(220,150,22,45);ctx.fillStyle='#3e2723';ctx.fillRect(130,340,60,130);
+    ctx.fillStyle='#d4af37';ctx.beginPath();ctx.arc(160,410,5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,180,0,0.4)';ctx.fillRect(100,300,40,40);ctx.fillRect(205,300,40,40);
+    ctx.fillStyle='#fff';ctx.font='bold 18px sans-serif';ctx.textAlign='center';ctx.fillText('➡ ТРОПА',580,380);
+    ctx.fillStyle='rgba(70,130,180,0.4)';ctx.beginPath();ctx.ellipse(900,450,130,60,0,0,Math.PI*2);ctx.fill();
+    for(let i=0;i<40;i++){const sx=(i*137+time*20)%ZOOM_W;const sy=(i*97+time*30)%ZOOM_H;ctx.fillStyle='rgba(255,255,255,0.25)';ctx.beginPath();ctx.arc(sx,sy,2,0,Math.PI*2);ctx.fill()}
   }
 
-  function drawFloor(y, color1, color2, type) {
-    const g = ctx.createLinearGradient(0, y, 0, ZOOM_H);
-    g.addColorStop(0, color1); g.addColorStop(1, color2);
-    ctx.fillStyle = g; ctx.fillRect(0, y, ZOOM_W, ZOOM_H - y);
-    ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 1.5;
-    if (type === 'wood') for (let i = y + 15; i < ZOOM_H; i += 25) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(ZOOM_W, i); ctx.stroke(); }
-    else if (type === 'concrete') for (let i = 0; i < ZOOM_W; i += 60) { ctx.beginPath(); ctx.moveTo(i, y); ctx.lineTo(i, ZOOM_H); ctx.stroke(); }
-    ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fillRect(0, y - 2, ZOOM_W, 4);
+  function drawGlade(time){
+    const sg=ctx.createLinearGradient(0,0,0,420);sg.addColorStop(0,'#1a252c');sg.addColorStop(0.5,'#3a5a6a');sg.addColorStop(1,'#90b0c0');ctx.fillStyle=sg;ctx.fillRect(0,0,ZOOM_W,420);
+    ctx.fillStyle='#d0dce8';ctx.fillRect(0,400,ZOOM_W,ZOOM_H-400);
+    ctx.fillStyle='#4e342e';ctx.fillRect(50,420,200,70);ctx.fillStyle='#f0f0f0';ctx.font='16px Georgia';ctx.textAlign='center';ctx.fillText('🌲 ХВОРОСТ',150,415);
+    ctx.fillStyle='#5d4037';ctx.fillRect(330,450,130,25);ctx.fillStyle='#f0f0f0';ctx.font='16px Georgia';ctx.textAlign='center';ctx.fillText('🪵 ПАЛКА',395,440);
+    ctx.fillStyle='#3e2723';ctx.fillRect(430,130,240,330);
+    if(state.bunkerUnlocked){ctx.fillStyle='#00ffcc';ctx.font='bold 22px sans-serif';ctx.textAlign='center';ctx.fillText('🚪 ОТТАЯЛО!',550,280)}
+    else if(state.fireStarted){ctx.fillStyle='rgba(180,220,255,0.3)';ctx.fillRect(435,135,230,320);ctx.fillStyle='#fff';ctx.font='bold 22px sans-serif';ctx.textAlign='center';ctx.fillText('🧊 ЛЁД ТАЕТ...',550,280)}
+    else{ctx.fillStyle='rgba(180,220,255,0.4)';ctx.fillRect(435,135,230,320);ctx.fillStyle='#fff';ctx.font='bold 20px sans-serif';ctx.textAlign='center';ctx.fillText('🧊 ЗАМЁРЗШИЙ',550,280)}
+    if(state.fireStarted){const fg=ctx.createRadialGradient(150,440,20,150,440,160);fg.addColorStop(0,'rgba(255,200,70,0.4)');fg.addColorStop(0.5,'rgba(255,100,20,0.15)');fg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=fg;ctx.fillRect(0,280,320,280);fire(150,450,35);ctx.fillStyle='#fff';ctx.font='15px Georgia';ctx.textAlign='center';ctx.fillText('🔥 КОСТЁР',150,395)}
+    for(let i=0;i<40;i++){const sx=(i*137+time*22)%ZOOM_W;const sy=(i*97+time*32)%ZOOM_H;ctx.fillStyle='rgba(255,255,255,0.25)';ctx.beginPath();ctx.arc(sx,sy,2,0,Math.PI*2);ctx.fill()}
   }
 
-  // ========== SCENES ==========
-  function drawRoom() {
-    ctx.fillStyle = '#1a2228'; ctx.fillRect(0, 0, ZOOM_W, 440);
-    drawFloor(440, '#6a5a4a', '#2a1a0a', 'wood');
-    ctx.fillStyle = '#1c2833'; ctx.fillRect(320, 70, 460, 240);
-    ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 12; ctx.strokeRect(320, 70, 460, 240);
-    ctx.beginPath(); ctx.moveTo(550, 70); ctx.lineTo(550, 310); ctx.stroke();
-    ctx.fillStyle = '#1e3a5f'; ctx.fillRect(310, 470, 200, 110);
-    ctx.fillStyle = '#f5f5f5'; ctx.beginPath(); ctx.ellipse(350, 500, 28, 16, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#5d4037'; ctx.fillRect(510, 480, 290, 90);
-    ctx.fillStyle = '#111'; ctx.fillRect(560, 440, 190, 50);
-    ctx.fillStyle = '#00bfff'; ctx.font = '11px monospace'; ctx.textAlign = 'center'; ctx.fillText('ПОИСК СИГНАЛА...', 655, 470);
-    ctx.fillStyle = '#4e342e'; ctx.fillRect(890, 60, 190, 330);
-    let fx = state.fridgeMoved ? -100 : 10;
-    ctx.fillStyle = '#d0d0d0'; ctx.fillRect(fx, 60, 110, 370);
-    if (state.fridgeMoved) { ctx.fillStyle = '#1a1a1a'; ctx.fillRect(120, 450, 130, 110); if (state.hatchOpened) { ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('⬇ ОТКРЫТ', 185, 520); } }
+  function drawCabin(){
+    ctx.fillStyle='#4a3020';ctx.fillRect(0,0,ZOOM_W,440);
+    for(let y=20;y<440;y+=50){ctx.strokeStyle='rgba(0,0,0,0.1)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(ZOOM_W,y);ctx.stroke()}
+    floor(440,'#6a5a4a','#2a1a0a','wood');
+    ctx.fillStyle='#2c1a12';ctx.fillRect(30,220,220,280);
+    const fg=ctx.createRadialGradient(140,400,30,140,400,300);fg.addColorStop(0,'rgba(255,200,70,0.4)');fg.addColorStop(0.5,'rgba(255,100,20,0.1)');fg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=fg;ctx.fillRect(0,100,400,400);
+    fire(140,410,45);
+    ctx.fillStyle='#4e342e';ctx.fillRect(80,440,120,18);ctx.fillRect(100,448,80,18);
+    ctx.fillStyle='#5d2a1a';ctx.beginPath();ctx.ellipse(140,500,80,35,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#4e342e';ctx.fillRect(380,390,340,70);ctx.fillStyle='#8d6e63';ctx.fillRect(480,372,140,18);
+    ctx.fillStyle='#4e342e';ctx.font='11px Georgia';ctx.textAlign='center';ctx.fillText('Дневник лесника',550,385);
+    ctx.fillStyle='#bdbdbd';ctx.fillRect(640,340,15,48);ctx.fillStyle='rgba(255,180,0,0.6)';ctx.beginPath();ctx.arc(647,318,11,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#4e342e';ctx.fillRect(700,360,150,100);ctx.fillStyle='#f5f5f5';ctx.beginPath();ctx.ellipse(725,395,26,16,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#3e2723';ctx.fillRect(790,90,220,430);ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.fillText('🚪 ВЫХОД',900,310);
+    ctx.fillStyle='#f0f0f0';ctx.font='bold 22px Georgia';ctx.textAlign='center';ctx.fillText('Тепло и уютно...',550,45);
   }
 
-  function drawBasement() {
-    ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, 0, ZOOM_W, 420);
-    drawFloor(420, '#3a3a3a', '#1a1a1a', 'stone');
-    ctx.fillStyle = '#8d6e63'; ctx.fillRect(75, 200, 50, 25);
-    drawStaticFire(100, 210, 25);
-    ctx.fillStyle = '#37474f'; ctx.fillRect(145, 130, 70, 210);
-    ctx.fillStyle = state.powerOn ? '#00ffcc' : '#ff1744';
-    ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(state.powerOn ? '⚡ ПИТАНИЕ' : '⚠ НЕТ', 180, 110);
-    ctx.fillStyle = '#3e2723'; ctx.fillRect(440, 80, 220, 380);
-    ctx.fillStyle = '#78909c'; ctx.beginPath(); ctx.arc(550, 270, 35, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = state.doorOpened ? '#00ffcc' : (state.powerOn ? '#ffeb3b' : '#ff1744');
-    ctx.font = 'bold 18px sans-serif'; ctx.fillText(state.doorOpened ? 'ОТКРЫТО' : (state.powerOn ? 'НАЖМИТЕ' : '🔒 ЗАКРЫТО'), 550, 220);
-    ctx.fillStyle = '#0a0a0e'; ctx.fillRect(840, 80, 250, 420);
-    ctx.fillStyle = '#555'; ctx.font = '15px sans-serif'; ctx.fillText('➡ ГЕНЕРАТОРНАЯ', 965, 460);
+  function drawZoom(){
+    ctx.fillStyle='rgba(10,10,20,0.95)';ctx.fillRect(0,0,ZOOM_W,ZOOM_H);
+    ctx.font='90px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    const map={bed:'🛏️',desk:'🖥️',closet:'🚪',fridge:'🧊',hatch:'⬇️',door:'🚪',lever:'🔧',cell:'🔋',greenDoor:'🚪',blueDoor:'🚪',exitDoor:'🚪',table1:'📦',table2:'📜',drawer:'📦',twigs:'🌲',stick:'🪵',bunkerDoor:'🚪',diary:'📖',cabinDoor:'🏠',forestPath:'➡️',lake:'🌊',passage:'➡️',exit:'⬅️',backExit:'⬅️',fireplace:'🔥',bed_cabin:'🛏️'};
+    ctx.fillText(map[zoomTarget]||'❓',550,240);
+    ctx.fillStyle='#fff';ctx.font='20px Georgia';
+    const desc={bed:state.phoneTaken?'Телефон у вас':'Телефон 📱',desk:state.keyTaken?'Ключ у вас':'Ключ 🗝️',closet:state.boxTaken?'Пусто':(state.phoneTaken?'Коробка 📦':'Нужен свет 📱'),fridge:state.fridgeMoved?'Сдвинут':'Сдвинуть',hatch:state.hatchOpened?'Спуститься?':'Нужна отвертка',door:state.doorOpened?'Открыта!':(state.powerOn?'Открыть!':'Закрыто'),lever:state.powerOn?'Питание есть':'Нужен аккумулятор',cell:state.batteryTaken?'Пусто':'Аккумулятор',greenDoor:'Лаб 1',blueDoor:state.blueDoorOpened?'Открыто':'Карта 1',exitDoor:state.finalExitOpened?'Открыто':'Карта 2',table1:state.keyCard1?'Взято':'Карта 1',table2:(!state.keyCard2?'Карта 2 ':'')+(!state.letterTaken?'Письмо':''),drawer:state.keyUsed&&state.secretNoteTaken?'Пусто':(state.keyUsed?'Карта':(state.keyTaken?'Ключ':'Заперто')),twigs:state.fireStarted?'Горит!':(state.woodTaken?'Разжечь':'Собрать'),stick:state.stickTaken?'Взято':'Взять',bunkerDoor:state.bunkerUnlocked?'Войти!':'Нужен огонь',diary:'Дневник',fireplace:'Камин',cabinDoor:'Хижина',forestPath:'Тропа',lake:'Озеро',passage:'Генераторная',exit:'Назад',backExit:'Выйти',bed_cabin:'Кровать'};
+    ctx.fillText(desc[zoomTarget]||'',550,380);
   }
 
-  function drawGenerator() {
-    ctx.fillStyle = '#2c3e50'; ctx.fillRect(0, 0, ZOOM_W, 400);
-    drawFloor(400, '#4a4a4a', '#2a2a2a', 'concrete');
-    ctx.fillStyle = '#2c2c2c'; ctx.fillRect(55, 140, 150, 280);
-    if (state.batteryTaken) { ctx.fillStyle = '#555'; ctx.font = '18px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('ПУСТО', 130, 290); }
-    else { ctx.fillStyle = '#f1c40f'; ctx.font = '45px sans-serif'; ctx.fillText('🔋', 130, 270); }
-    ctx.fillStyle = '#0a0a0e'; ctx.fillRect(840, 80, 250, 420);
-    ctx.fillStyle = '#555'; ctx.font = '15px sans-serif'; ctx.fillText('⬅ НАЗАД', 965, 460);
-  }
+  function showDesc(t){if(!t){descEl.classList.remove('visible');descEl.innerText='';return}descEl.innerText=t;descEl.classList.add('visible');clearTimeout(descEl._to);descEl._to=setTimeout(()=>descEl.classList.remove('visible'),1800)}
 
-  function drawBunkerHall() {
-    ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, 0, ZOOM_W, 400);
-    drawFloor(400, '#3a3a4a', '#1a1a2a', 'concrete');
-    ctx.fillStyle = '#3e2723'; ctx.fillRect(670, 90, 220, 340);
-    ctx.fillStyle = '#fff'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🚪 ВЫХОД', 780, 260);
-    ctx.fillStyle = state.finalExitOpened ? '#00ffcc' : '#ff1744';
-    ctx.font = '15px sans-serif'; ctx.fillText(state.finalExitOpened ? 'ОТКРЫТО' : 'КАРТА 2', 780, 300);
-    ctx.fillStyle = '#2e7d32'; ctx.fillRect(250, 110, 180, 300);
-    ctx.fillStyle = '#fff'; ctx.font = 'bold 18px sans-serif'; ctx.fillText('🚪 ЛАБ 1', 340, 260);
-    ctx.fillStyle = '#1565c0'; ctx.fillRect(450, 110, 180, 300);
-    ctx.fillStyle = '#fff'; ctx.font = 'bold 18px sans-serif';
-    if (state.blueDoorOpened) { ctx.fillStyle = '#00ffcc'; ctx.fillText('🚪 ОТКРЫТО', 540, 260); }
-    else { ctx.fillText('🚪 ОТДЫХ', 540, 260); ctx.fillStyle = '#ff1744'; ctx.font = '13px sans-serif'; ctx.fillText('Закрыто', 540, 300); }
-  }
-
-  function drawLab1() {
-    ctx.fillStyle = '#37474f'; ctx.fillRect(0, 0, ZOOM_W, 400);
-    drawFloor(400, '#4a5a6a', '#2a3a4a', 'concrete');
-    ctx.fillStyle = '#5d4037'; ctx.fillRect(370, 370, 360, 80);
-    ctx.fillStyle = state.keyCard1 ? '#666' : '#00ff00';
-    ctx.font = '20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(state.keyCard1 ? 'Карта взята' : '🟩 Карта 1 уровня', 550, 420);
-    ctx.fillStyle = '#0a0a0e'; ctx.fillRect(860, 80, 200, 420);
-    ctx.fillStyle = '#555'; ctx.font = '15px sans-serif'; ctx.fillText('⬅ ВЫХОД', 960, 290);
-  }
-
-  function drawRestRoom() {
-    ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, 0, ZOOM_W, 400);
-    drawFloor(400, '#3a3a4a', '#1a1a2a', 'concrete');
-    ctx.fillStyle = '#5d4037'; ctx.fillRect(370, 370, 360, 80);
-    let items = []; if (!state.keyCard2) items.push('🟦 Карта 2'); if (!state.letterTaken) items.push('📜 Письмо');
-    ctx.fillStyle = '#448aff'; ctx.font = '18px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(items.length ? items.join(' & ') : 'Всё взято', 550, 420);
-    ctx.fillStyle = '#3e2723'; ctx.fillRect(285, 375, 85, 65);
-    ctx.fillStyle = state.keyUsed && state.secretNoteTaken ? '#555' : (state.keyUsed ? '#f1c40f' : (state.keyTaken ? '#ffeb3b' : '#444'));
-    ctx.font = '15px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(state.keyUsed && state.secretNoteTaken ? 'Пусто' : (state.keyUsed ? '🗺️' : (state.keyTaken ? '🔑' : '🔒')), 327, 412);
-    ctx.fillStyle = '#0a0a0e'; ctx.fillRect(860, 80, 200, 420);
-    ctx.fillStyle = '#555'; ctx.font = '15px sans-serif'; ctx.fillText('⬅ ВЫХОД', 960, 290);
-  }
-
-  function drawForest(time) {
-    const sg = ctx.createLinearGradient(0, 0, 0, 380);
-    sg.addColorStop(0, '#2c3e50'); sg.addColorStop(0.5, '#5a7a8a'); sg.addColorStop(1, '#c0d8e8');
-    ctx.fillStyle = sg; ctx.fillRect(0, 0, ZOOM_W, 380);
-    for (let i = 0; i < 8; i++) { let x = 30 + i * 130; ctx.fillStyle = '#1a2a1a'; ctx.beginPath(); ctx.moveTo(x, 360); ctx.lineTo(x + 30, 190); ctx.lineTo(x + 60, 360); ctx.fill(); }
-    ctx.fillStyle = '#d0dce8'; ctx.fillRect(0, 360, ZOOM_W, ZOOM_H - 360);
-    ctx.fillStyle = '#5d4037'; ctx.fillRect(80, 260, 220, 220);
-    ctx.fillStyle = '#4a3020'; ctx.beginPath(); ctx.moveTo(60, 260); ctx.lineTo(190, 170); ctx.lineTo(320, 260); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#e8f0f8'; ctx.beginPath(); ctx.moveTo(65, 255); ctx.lineTo(190, 175); ctx.lineTo(315, 255); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#3e2723'; ctx.fillRect(220, 150, 22, 45);
-    ctx.fillStyle = '#3e2723'; ctx.fillRect(130, 340, 60, 130);
-    ctx.fillStyle = '#d4af37'; ctx.beginPath(); ctx.arc(160, 410, 5, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(255,180,0,0.4)'; ctx.fillRect(100, 300, 40, 40); ctx.fillRect(205, 300, 40, 40);
-    ctx.fillStyle = '#fff'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('➡ ТРОПА', 580, 380);
-    ctx.fillStyle = 'rgba(70,130,180,0.4)'; ctx.beginPath(); ctx.ellipse(900, 450, 130, 60, 0, 0, Math.PI * 2); ctx.fill();
-    for (let i = 0; i < 40; i++) {
-      const sx = (i * 137 + time * 20) % ZOOM_W;
-      const sy = (i * 97 + time * 30) % ZOOM_H;
-      ctx.fillStyle = 'rgba(255,255,255,0.25)';
-      ctx.beginPath(); ctx.arc(sx, sy, 2, 0, Math.PI * 2); ctx.fill();
-    }
-  }
-
-  function drawGlade(time) {
-    const sg = ctx.createLinearGradient(0, 0, 0, 420);
-    sg.addColorStop(0, '#1a252c'); sg.addColorStop(0.5, '#3a5a6a'); sg.addColorStop(1, '#90b0c0');
-    ctx.fillStyle = sg; ctx.fillRect(0, 0, ZOOM_W, 420);
-    ctx.fillStyle = '#d0dce8'; ctx.fillRect(0, 400, ZOOM_W, ZOOM_H - 400);
-    ctx.fillStyle = '#4e342e'; ctx.fillRect(50, 420, 200, 70);
-    ctx.fillStyle = '#f0f0f0'; ctx.font = '16px Georgia'; ctx.textAlign = 'center'; ctx.fillText('🌲 ХВОРОСТ', 150, 415);
-    ctx.fillStyle = '#5d4037'; ctx.fillRect(330, 450, 130, 25);
-    ctx.fillStyle = '#f0f0f0'; ctx.font = '16px Georgia'; ctx.textAlign = 'center'; ctx.fillText('🪵 ПАЛКА', 395, 440);
-    ctx.fillStyle = '#3e2723'; ctx.fillRect(430, 130, 240, 330);
-    if (state.bunkerUnlocked) { ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 22px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🚪 ОТТАЯЛО!', 550, 280); }
-    else if (state.fireStarted) { ctx.fillStyle = 'rgba(180,220,255,0.3)'; ctx.fillRect(435, 135, 230, 320); ctx.fillStyle = '#fff'; ctx.font = 'bold 22px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🧊 ЛЁД ТАЕТ...', 550, 280); }
-    else { ctx.fillStyle = 'rgba(180,220,255,0.4)'; ctx.fillRect(435, 135, 230, 320); ctx.fillStyle = '#fff'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🧊 ЗАМЁРЗШИЙ', 550, 280); }
-    if (state.fireStarted) {
-      const fg = ctx.createRadialGradient(150, 440, 20, 150, 440, 160);
-      fg.addColorStop(0, 'rgba(255,200,70,0.4)'); fg.addColorStop(0.5, 'rgba(255,100,20,0.15)'); fg.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = fg; ctx.fillRect(0, 280, 320, 280);
-      drawStaticFire(150, 450, 35);
-      ctx.fillStyle = '#fff'; ctx.font = '15px Georgia'; ctx.textAlign = 'center'; ctx.fillText('🔥 КОСТЁР', 150, 395);
-    }
-    for (let i = 0; i < 40; i++) {
-      const sx = (i * 137 + time * 22) % ZOOM_W;
-      const sy = (i * 97 + time * 32) % ZOOM_H;
-      ctx.fillStyle = 'rgba(255,255,255,0.25)';
-      ctx.beginPath(); ctx.arc(sx, sy, 2, 0, Math.PI * 2); ctx.fill();
-    }
-  }
-
-  function drawCabin() {
-    ctx.fillStyle = '#4a3020'; ctx.fillRect(0, 0, ZOOM_W, 440);
-    for (let y = 20; y < 440; y += 50) { ctx.strokeStyle = 'rgba(0,0,0,0.1)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(ZOOM_W, y); ctx.stroke(); }
-    drawFloor(440, '#6a5a4a', '#2a1a0a', 'wood');
-    ctx.fillStyle = '#2c1a12'; ctx.fillRect(30, 220, 220, 280);
-    const fg = ctx.createRadialGradient(140, 400, 30, 140, 400, 300);
-    fg.addColorStop(0, 'rgba(255,200,70,0.4)'); fg.addColorStop(0.5, 'rgba(255,100,20,0.1)'); fg.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = fg; ctx.fillRect(0, 100, 400, 400);
-    drawStaticFire(140, 410, 45);
-    ctx.fillStyle = '#4e342e'; ctx.fillRect(80, 440, 120, 18); ctx.fillRect(100, 448, 80, 18);
-    ctx.fillStyle = '#5d2a1a'; ctx.beginPath(); ctx.ellipse(140, 500, 80, 35, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#4e342e'; ctx.fillRect(380, 390, 340, 70);
-    ctx.fillStyle = '#8d6e63'; ctx.fillRect(480, 372, 140, 18);
-    ctx.fillStyle = '#4e342e'; ctx.font = '11px Georgia'; ctx.textAlign = 'center'; ctx.fillText('Дневник лесника', 550, 385);
-    ctx.fillStyle = '#bdbdbd'; ctx.fillRect(640, 340, 15, 48);
-    ctx.fillStyle = 'rgba(255,180,0,0.6)'; ctx.beginPath(); ctx.arc(647, 318, 11, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#4e342e'; ctx.fillRect(700, 360, 150, 100);
-    ctx.fillStyle = '#f5f5f5'; ctx.beginPath(); ctx.ellipse(725, 395, 26, 16, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#3e2723'; ctx.fillRect(790, 90, 220, 430);
-    ctx.fillStyle = '#fff'; ctx.font = 'bold 16px sans-serif'; ctx.fillText('🚪 ВЫХОД', 900, 310);
-    ctx.fillStyle = '#f0f0f0'; ctx.font = 'bold 22px Georgia'; ctx.textAlign = 'center'; ctx.fillText('Тепло и уютно...', 550, 45);
-  }
-
-  function drawZoom() {
-    ctx.fillStyle = 'rgba(10,10,20,0.95)'; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H);
-    ctx.font = '90px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const map = { bed:'🛏️',desk:'🖥️',closet:'🚪',fridge:'🧊',hatch:'⬇️',door:'🚪',lever:'🔧',cell:'🔋',greenDoor:'🚪',blueDoor:'🚪',exitDoor:'🚪',table1:'📦',table2:'📜',drawer:'📦',twigs:'🌲',stick:'🪵',bunkerDoor:'🚪',diary:'📖',cabinDoor:'🏠',forestPath:'➡️',lake:'🌊',passage:'➡️',exit:'⬅️',backExit:'⬅️',fireplace:'🔥',bed_cabin:'🛏️' };
-    ctx.fillText(map[zoomTarget] || '❓', 550, 240);
-    ctx.fillStyle = '#fff'; ctx.font = '20px Georgia';
-    const desc = { bed: state.phoneTaken ? 'Телефон у вас' : 'Телефон 📱', desk: state.keyTaken ? 'Ключ у вас' : 'Ключ 🗝️', closet: state.boxTaken ? 'Пусто' : (state.phoneTaken ? 'Коробка 📦' : 'Нужен свет 📱'), fridge: state.fridgeMoved ? 'Сдвинут' : 'Сдвинуть', hatch: state.hatchOpened ? 'Спуститься?' : 'Нужна отвертка', door: state.doorOpened ? 'Открыта!' : (state.powerOn ? 'Открыть!' : 'Закрыто'), lever: state.powerOn ? 'Питание есть' : 'Нужен аккумулятор', cell: state.batteryTaken ? 'Пусто' : 'Аккумулятор', greenDoor: 'Лаб 1', blueDoor: state.blueDoorOpened ? 'Открыто' : 'Карта 1', exitDoor: state.finalExitOpened ? 'Открыто' : 'Карта 2', table1: state.keyCard1 ? 'Взято' : 'Карта 1', table2: (!state.keyCard2 ? 'Карта 2 ' : '') + (!state.letterTaken ? 'Письмо' : ''), drawer: state.keyUsed && state.secretNoteTaken ? 'Пусто' : (state.keyUsed ? 'Карта' : (state.keyTaken ? 'Ключ' : 'Заперто')), twigs: state.fireStarted ? 'Горит!' : (state.woodTaken ? 'Разжечь' : 'Собрать'), stick: state.stickTaken ? 'Взято' : 'Взять', bunkerDoor: state.bunkerUnlocked ? 'Войти!' : 'Нужен огонь', diary: 'Дневник', fireplace: 'Камин', cabinDoor: 'Хижина', forestPath: 'Тропа', lake: 'Озеро', passage: 'Генераторная', exit: 'Назад', backExit: 'Выйти', bed_cabin: 'Кровать' };
-    ctx.fillText(desc[zoomTarget] || '', 550, 380);
-  }
-
-  function showDesc(text) {
-    if (!text) { descEl.classList.remove('visible'); descEl.innerText = ''; return; }
-    descEl.innerText = text; descEl.classList.add('visible');
-    clearTimeout(descEl._timeout);
-    descEl._timeout = setTimeout(() => { descEl.classList.remove('visible'); }, 1800);
-  }
-
-  function drawScene() {
-    const w = canvas.width / window.devicePixelRatio;
-    const h = canvas.height / window.devicePixelRatio;
-    const time = Date.now() / 1000;
-    ctx.clearRect(0, 0, w, h);
-    ctx.save();
-    const scale = Math.min(w / ZOOM_W, h / ZOOM_H);
-    const ox = (w - ZOOM_W * scale) / 2;
-    const oy = (h - ZOOM_H * scale) / 2;
-    ctx.translate(ox, oy);
-    ctx.scale(scale, scale);
-
-    if (!gameStarted) { ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, 0, ZOOM_W, ZOOM_H); }
-    else if (viewMode === 'main') {
-      if (level === 1) drawRoom();
-      else if (level === 2) { if (currentZone === 'basement') drawBasement(); else drawGenerator(); }
-      else if (level === 3) { if (currentZone === 'bunker_hall') drawBunkerHall(); else if (currentZone === 'lab1') drawLab1(); else drawRestRoom(); }
-      else if (level === 4) drawForest(time);
-      else if (level === 5) drawGlade(time);
-      else if (level === 6) drawCabin();
-    } else drawZoom();
+  function drawScene(){
+    const w=canvas.width/window.devicePixelRatio,h=canvas.height/window.devicePixelRatio,time=Date.now()/1000;
+    ctx.clearRect(0,0,w,h);ctx.save();
+    const s=Math.min(w/ZOOM_W,h/ZOOM_H),ox=(w-ZOOM_W*s)/2,oy=(h-ZOOM_H*s)/2;
+    ctx.translate(ox,oy);ctx.scale(s,s);
+    if(!gameStarted){ctx.fillStyle='#1a1a2e';ctx.fillRect(0,0,ZOOM_W,ZOOM_H)}
+    else if(viewMode==='main'){if(level===1)drawRoom();else if(level===2){if(currentZone==='basement')drawBasement();else drawGenerator()}else if(level===3){if(currentZone==='bunker_hall')drawBunkerHall();else if(currentZone==='lab1')drawLab1();else drawRestRoom()}else if(level===4)drawForest(time);else if(level===5)drawGlade(time);else if(level===6)drawCabin()}else drawZoom();
     ctx.restore();
   }
 
-  // ========== GAME LOGIC ==========
-  function startGame() {
-    lobby.classList.add('hidden');
-    uiLayer.style.display = 'block';
-    showFullscreenBtn();
-    gameStarted = true; level = 1; currentZone = 'room';
-    updateZones(); resizeCanvas(); drawScene(); renderInv();
-  }
-
-  function renderInv() {
-    invEl.innerHTML = '';
-    if (!inventory.length) { let d = document.createElement('div'); d.className = 'inv-slot empty'; d.innerText = '—'; invEl.appendChild(d); }
-    else { inventory.forEach(item => { let s = document.createElement('div'); s.className = 'inv-slot'; s.innerText = itemIcons[item] || '❓'; s.addEventListener('click', (e) => { e.stopPropagation(); if (gameWin) return; document.querySelectorAll('.inv-slot').forEach(el => el.classList.remove('selected')); s.classList.add('selected'); selectedItem = item; showDesc(item); }); invEl.appendChild(s); }); }
-  }
-
-  function enterLevel2() { level = 2; currentZone = 'basement'; viewMode = 'main'; backBtn.style.display = 'none'; updateZones(); drawScene(); renderInv(); }
-  function enterLevel3() { level = 3; currentZone = 'bunker_hall'; viewMode = 'main'; backBtn.style.display = 'none'; updateZones(); drawScene(); renderInv(); }
-  function enterForest() { level = 4; currentZone = 'forest'; viewMode = 'main'; backBtn.style.display = 'none'; updateZones(); drawScene(); renderInv(); }
-  function enterGlade() { level = 5; currentZone = 'glade'; viewMode = 'main'; backBtn.style.display = 'none'; updateZones(); drawScene(); renderInv(); }
-  function enterCabin() { level = 6; currentZone = 'interior'; state.cabinEntered = true; viewMode = 'main'; backBtn.style.display = 'none'; updateZones(); drawScene(); renderInv(); }
-  function finish() { gameWin = true; winScreen.style.display = 'flex'; }
-
-  function handleZoomClick() {
-    let act = false;
-    if (zoomTarget === 'bed' && !state.phoneTaken) { inventory.push('телефон'); state.phoneTaken = true; showDesc('Телефон 📱'); act = true; }
-    else if (zoomTarget === 'desk' && !state.keyTaken) { inventory.push('ключ'); state.keyTaken = true; showDesc('Ключ 🗝️'); act = true; }
-    else if (zoomTarget === 'closet' && state.phoneTaken && !state.boxTaken) { inventory.push('коробка'); state.boxTaken = true; showDesc('Коробка 📦'); act = true; }
-    else if (zoomTarget === 'fridge' && !state.fridgeMoved) { state.fridgeMoved = true; showDesc('Холодильник сдвинут!'); act = true; }
-    else if (zoomTarget === 'hatch' && state.fridgeMoved && !state.hatchOpened && selectedItem === 'отвертка') { state.hatchOpened = true; showDesc('Люк открыт!'); act = true; }
-    else if (zoomTarget === 'hatch' && state.hatchOpened) { enterLevel2(); return; }
-    else if (zoomTarget === 'door' && state.powerOn) { state.doorOpened = true; enterLevel3(); return; }
-    else if (zoomTarget === 'lever' && !state.powerOn && selectedItem === 'аккумулятор') { state.powerOn = true; inventory = inventory.filter(i => i !== 'аккумулятор'); showDesc('Питание подано!'); act = true; }
-    else if (zoomTarget === 'cell' && !state.batteryTaken && selectedItem === 'отвертка') { state.batteryTaken = true; inventory.push('аккумулятор'); showDesc('Аккумулятор 🔋'); act = true; }
-    else if (zoomTarget === 'table1' && !state.keyCard1) { inventory.push('зелёная карта'); state.keyCard1 = true; showDesc('Карта 1 🟩'); act = true; }
-    else if (zoomTarget === 'table2') { if (!state.keyCard2) { inventory.push('голубая карта'); state.keyCard2 = true; showDesc('Карта 2 🟦'); act = true; } if (!state.letterTaken) { state.letterTaken = true; letterOverlay.classList.add('active'); act = true; } }
-    else if (zoomTarget === 'drawer' && !state.keyUsed && selectedItem === 'ключ') { state.keyUsed = true; inventory = inventory.filter(i => i !== 'ключ'); showDesc('Ящик открыт!'); act = true; }
-    else if (zoomTarget === 'drawer' && state.keyUsed && !state.secretNoteTaken) { state.secretNoteTaken = true; showDesc('Старая карта!'); act = true; }
-    else if (zoomTarget === 'twigs' && !state.woodTaken) { inventory.push('хворост'); state.woodTaken = true; showDesc('Хворост 🌲'); act = true; }
-    else if (zoomTarget === 'twigs' && state.woodTaken && selectedItem === 'палка' && !state.fireStarted) {
-      state.fireStarted = true; showDesc('Костёр разожжён!');
-      setTimeout(() => { state.bunkerUnlocked = true; showDesc('Дверь оттаяла!'); drawScene(); }, 2500);
-      act = true;
-    }
-    else if (zoomTarget === 'stick' && !state.stickTaken) { inventory.push('палка'); state.stickTaken = true; showDesc('Палка 🪵'); act = true; }
-    else if (zoomTarget === 'bunkerDoor' && state.bunkerUnlocked) { viewMode = 'main'; backBtn.style.display = 'none'; drawScene(); finish(); return; }
-    else if (zoomTarget === 'diary') { diaryOverlay.classList.add('active'); act = true; }
-    if (act) { renderInv(); document.querySelectorAll('.inv-slot').forEach(el => el.classList.remove('selected')); selectedItem = null; }
-    viewMode = 'main'; backBtn.style.display = 'none'; drawScene();
-  }
-
-  function onClick(e) {
-    if (!gameStarted || gameWin) return;
-    const { x, y } = getPos(e);
-    if (viewMode === 'zoom') { handleZoomClick(); return; }
-    let clicked = null;
-    for (let [k, z] of Object.entries(zones)) { if (k === 'hatch' && !state.fridgeMoved) continue; if (x >= z.x && x <= z.x + z.w && y >= z.y && y <= z.y + z.h) { clicked = k; break; } }
-    if (!clicked) { if (selectedItem === 'коробка' && !state.screwdriverTaken && level === 1) { inventory = inventory.filter(i => i !== 'коробка'); inventory.push('отвертка'); state.screwdriverTaken = true; renderInv(); showDesc('Отвертка 🪛'); selectedItem = null; } return; }
-    if (clicked === 'hatch' && state.hatchOpened) enterLevel2();
-    else if (clicked === 'passage' && level === 2) { currentZone = 'generator'; updateZones(); }
-    else if (clicked === 'exit' && level === 2) { currentZone = 'basement'; updateZones(); }
-    else if (clicked === 'greenDoor' && level === 3) { currentZone = 'lab1'; updateZones(); }
-    else if (clicked === 'blueDoor' && level === 3) { if (state.blueDoorOpened || (state.keyCard1 && selectedItem === 'зелёная карта')) { if (!state.blueDoorOpened) { state.blueDoorOpened = true; inventory = inventory.filter(i => i !== 'зелёная карта'); renderInv(); selectedItem = null; } currentZone = 'rest_room'; updateZones(); } }
-    else if (clicked === 'exitDoor' && level === 3) { if (state.finalExitOpened) enterForest(); else if (state.keyCard2 && selectedItem === 'голубая карта') { state.finalExitOpened = true; inventory = inventory.filter(i => i !== 'голубая карта'); renderInv(); selectedItem = null; showDesc('Выход открыт!'); } }
-    else if (clicked === 'backExit') { if (level === 3) currentZone = 'bunker_hall'; else if (level === 6) { enterForest(); return; } updateZones(); }
-    else if (clicked === 'cabinDoor' && level === 4) enterCabin();
-    else if (clicked === 'forestPath' && level === 4) enterGlade();
-    else if (clicked === 'bunkerDoor' && level === 5 && state.bunkerUnlocked) finish();
-    else { viewMode = 'zoom'; zoomTarget = clicked; backBtn.style.display = 'block'; }
+  // ========== TOUCH / CLICK HANDLING ==========
+  function handleAction(){
+    if(!gameStarted||gameWin)return;
+    const e=window._lastEvent;
+    if(!e)return;
+    const{x,y}=getPos(e);
+    if(viewMode==='zoom'){handleZoom();return}
+    let cl=null;
+    for(let[k,z]of Object.entries(zones)){if(k==='hatch'&&!state.fridgeMoved)continue;if(x>=z.x&&x<=z.x+z.w&&y>=z.y&&y<=z.y+z.h){cl=k;break}}
+    if(!cl){if(selectedItem==='коробка'&&!state.screwdriverTaken&&level===1){inventory=inventory.filter(i=>i!=='коробка');inventory.push('отвертка');state.screwdriverTaken=true;renderInv();showDesc('Отвертка 🪛');selectedItem=null}return}
+    if(cl==='hatch'&&state.hatchOpened)enterL2();
+    else if(cl==='passage'&&level===2){currentZone='generator';setZones()}
+    else if(cl==='exit'&&level===2){currentZone='basement';setZones()}
+    else if(cl==='greenDoor'&&level===3){currentZone='lab1';setZones()}
+    else if(cl==='blueDoor'&&level===3){if(state.blueDoorOpened||(state.keyCard1&&selectedItem==='зелёная карта')){if(!state.blueDoorOpened){state.blueDoorOpened=true;inventory=inventory.filter(i=>i!=='зелёная карта');renderInv();selectedItem=null}currentZone='rest_room';setZones()}}
+    else if(cl==='exitDoor'&&level===3){if(state.finalExitOpened)enterForest();else if(state.keyCard2&&selectedItem==='голубая карта'){state.finalExitOpened=true;inventory=inventory.filter(i=>i!=='голубая карта');renderInv();selectedItem=null;showDesc('Выход открыт!')}}
+    else if(cl==='backExit'){if(level===3)currentZone='bunker_hall';else if(level===6){enterForest();return}setZones()}
+    else if(cl==='cabinDoor'&&level===4)enterCabin();
+    else if(cl==='forestPath'&&level===4)enterGlade();
+    else if(cl==='bunkerDoor'&&level===5&&state.bunkerUnlocked)finish();
+    else{viewMode='zoom';zoomTarget=cl;backBtn.style.display='block'}
     drawScene();
   }
 
-  canvas.addEventListener('click', onClick);
-  canvas.addEventListener('touchend', (e) => { e.preventDefault(); onClick(e); });
+  // Обработчики событий для сенсорного управления
+  canvas.addEventListener('touchstart',(e)=>{
+    e.preventDefault();
+    window._lastEvent=e;
+    handleAction();
+  });
+  canvas.addEventListener('touchend',(e)=>{
+    e.preventDefault();
+    window._lastEvent=e;
+    handleAction();
+  });
+  canvas.addEventListener('click',(e)=>{
+    window._lastEvent=e;
+    handleAction();
+  });
 
-  function goBack() { viewMode = 'main'; backBtn.style.display = 'none'; drawScene(); }
-  backBtn.addEventListener('click', goBack);
-  backBtn.addEventListener('touchend', (e) => { e.preventDefault(); goBack(); });
+  // Предотвращение нежелательного поведения
+  document.addEventListener('gesturestart',(e)=>e.preventDefault());
+  document.addEventListener('gesturechange',(e)=>e.preventDefault());
+  document.addEventListener('gestureend',(e)=>e.preventDefault());
 
-  document.getElementById('start-btn').addEventListener('click', startGame);
-  document.getElementById('start-btn').addEventListener('touchend', (e) => { e.preventDefault(); startGame(); });
-  document.getElementById('letter-close').addEventListener('click', () => letterOverlay.classList.remove('active'));
-  document.getElementById('diary-close').addEventListener('click', () => diaryOverlay.classList.remove('active'));
+  // ========== LOGIC ==========
+  function startGame(){lobby.classList.add('hidden');uiLayer.style.display='block';gameStarted=true;level=1;currentZone='room';setZones();resizeCanvas();drawScene();renderInv()}
+  function renderInv(){invEl.innerHTML='';if(!inventory.length){let d=document.createElement('div');d.className='inv-slot empty';d.innerText='—';invEl.appendChild(d)}else{inventory.forEach(item=>{let s=document.createElement('div');s.className='inv-slot';s.innerText=icons[item]||'❓';s.addEventListener('click',(e)=>{e.stopPropagation();if(gameWin)return;document.querySelectorAll('.inv-slot').forEach(el=>el.classList.remove('selected'));s.classList.add('selected');selectedItem=item;showDesc(item)});invEl.appendChild(s)})}}
+  function enterL2(){level=2;currentZone='basement';viewMode='main';backBtn.style.display='none';setZones();drawScene();renderInv()}
+  function enterL3(){level=3;currentZone='bunker_hall';viewMode='main';backBtn.style.display='none';setZones();drawScene();renderInv()}
+  function enterForest(){level=4;currentZone='forest';viewMode='main';backBtn.style.display='none';setZones();drawScene();renderInv()}
+  function enterGlade(){level=5;currentZone='glade';viewMode='main';backBtn.style.display='none';setZones();drawScene();renderInv()}
+  function enterCabin(){level=6;currentZone='interior';state.cabinEntered=true;viewMode='main';backBtn.style.display='none';setZones();drawScene();renderInv()}
+  function finish(){gameWin=true;winScreen.style.display='flex'}
 
-  window.addEventListener('resize', () => { resizeCanvas(); drawScene(); });
-  window.addEventListener('orientationchange', () => setTimeout(() => { resizeCanvas(); drawScene(); }, 200));
+  function handleZoom(){
+    let a=false;
+    if(zoomTarget==='bed'&&!state.phoneTaken){inventory.push('телефон');state.phoneTaken=true;showDesc('Телефон 📱');a=true}
+    else if(zoomTarget==='desk'&&!state.keyTaken){inventory.push('ключ');state.keyTaken=true;showDesc('Ключ 🗝️');a=true}
+    else if(zoomTarget==='closet'&&state.phoneTaken&&!state.boxTaken){inventory.push('коробка');state.boxTaken=true;showDesc('Коробка 📦');a=true}
+    else if(zoomTarget==='fridge'&&!state.fridgeMoved){state.fridgeMoved=true;showDesc('Холодильник сдвинут!');a=true}
+    else if(zoomTarget==='hatch'&&state.fridgeMoved&&!state.hatchOpened&&selectedItem==='отвертка'){state.hatchOpened=true;showDesc('Люк открыт!');a=true}
+    else if(zoomTarget==='hatch'&&state.hatchOpened){enterL2();return}
+    else if(zoomTarget==='door'&&state.powerOn){state.doorOpened=true;enterL3();return}
+    else if(zoomTarget==='lever'&&!state.powerOn&&selectedItem==='аккумулятор'){state.powerOn=true;inventory=inventory.filter(i=>i!=='аккумулятор');showDesc('Питание подано!');a=true}
+    else if(zoomTarget==='cell'&&!state.batteryTaken&&selectedItem==='отвертка'){state.batteryTaken=true;inventory.push('аккумулятор');showDesc('Аккумулятор 🔋');a=true}
+    else if(zoomTarget==='table1'&&!state.keyCard1){inventory.push('зелёная карта');state.keyCard1=true;showDesc('Карта 1 🟩');a=true}
+    else if(zoomTarget==='table2'){if(!state.keyCard2){inventory.push('голубая карта');state.keyCard2=true;showDesc('Карта 2 🟦');a=true}if(!state.letterTaken){state.letterTaken=true;letterOverlay.classList.add('active');a=true}}
+    else if(zoomTarget==='drawer'&&!state.keyUsed&&selectedItem==='ключ'){state.keyUsed=true;inventory=inventory.filter(i=>i!=='ключ');showDesc('Ящик открыт!');a=true}
+    else if(zoomTarget==='drawer'&&state.keyUsed&&!state.secretNoteTaken){state.secretNoteTaken=true;showDesc('Старая карта!');a=true}
+    else if(zoomTarget==='twigs'&&!state.woodTaken){inventory.push('хворост');state.woodTaken=true;showDesc('Хворост 🌲');a=true}
+    else if(zoomTarget==='twigs'&&state.woodTaken&&selectedItem==='палка'&&!state.fireStarted){state.fireStarted=true;showDesc('Костёр разожжён!');setTimeout(()=>{state.bunkerUnlocked=true;showDesc('Дверь оттаяла!');drawScene()},2500);a=true}
+    else if(zoomTarget==='stick'&&!state.stickTaken){inventory.push('палка');state.stickTaken=true;showDesc('Палка 🪵');a=true}
+    else if(zoomTarget==='bunkerDoor'&&state.bunkerUnlocked){viewMode='main';backBtn.style.display='none';drawScene();finish();return}
+    else if(zoomTarget==='diary'){diaryOverlay.classList.add('active');a=true}
+    if(a){renderInv();document.querySelectorAll('.inv-slot').forEach(el=>el.classList.remove('selected'));selectedItem=null}
+    viewMode='main';backBtn.style.display='none';drawScene();
+  }
 
-  function gameLoop() { if (gameStarted) drawScene(); requestAnimationFrame(gameLoop); }
-  setTimeout(() => { loading.classList.add('hidden'); resizeCanvas(); drawScene(); }, 500);
-  requestAnimationFrame(gameLoop);
+  function goBack(){viewMode='main';backBtn.style.display='none';drawScene()}
+  backBtn.addEventListener('click',goBack);
+  backBtn.addEventListener('touchend',(e)=>{e.preventDefault();goBack()});
+
+  document.getElementById('start-btn').addEventListener('click',startGame);
+  document.getElementById('start-btn').addEventListener('touchend',(e)=>{e.preventDefault();startGame()});
+  document.getElementById('letter-close').addEventListener('click',()=>letterOverlay.classList.remove('active'));
+  document.getElementById('letter-close').addEventListener('touchend',(e)=>{e.preventDefault();letterOverlay.classList.remove('active')});
+  document.getElementById('diary-close').addEventListener('click',()=>diaryOverlay.classList.remove('active'));
+  document.getElementById('diary-close').addEventListener('touchend',(e)=>{e.preventDefault();diaryOverlay.classList.remove('active')});
+
+  window.addEventListener('resize',()=>{resizeCanvas();drawScene()});
+  window.addEventListener('orientationchange',()=>setTimeout(()=>{resizeCanvas();drawScene()},200));
+
+  function loop(){if(gameStarted)drawScene();requestAnimationFrame(loop)}
+  setTimeout(()=>{loading.classList.add('hidden');resizeCanvas();drawScene()},500);
+  requestAnimationFrame(loop);
 })();
 </script>
 </body>
