@@ -50,7 +50,7 @@
     }
     #lobby-layer.hidden { opacity:0; pointer-events:none; }
     .lobby-title { font-size:clamp(2rem, 8vw, 5rem); color:#e0a800; text-shadow:0 0 30px rgba(224,168,0,0.4); letter-spacing:0.3em; font-weight:bold; margin-bottom:0.5rem; text-align:center; }
-    .lobby-subtitle { font-size:clamp(0.8rem, 2.5vw, 1.4rem); color:#8899aa; letter-spacing:0.3em; margin-bottom:2.5rem; text-align:center; }
+    .lobby-subtitle { font-size:clamp(0.8rem, 2.5vw, 1.4rem); color:#8899aa; letter-spacing:0.3em; margin-bottom:2rem; text-align:center; }
     .lobby-btn-group {
       display:flex;
       flex-direction:column;
@@ -74,23 +74,22 @@
       width:100%;
       min-height:60px;
       text-align:center;
+      box-shadow:0 4px 15px rgba(241,196,15,0.3);
     }
-    .lobby-btn:active { transform:scale(0.94); }
+    .lobby-btn:active { transform:scale(0.95); }
     .lobby-btn.install-btn {
       background:linear-gradient(180deg, #4CAF50, #2E7D32);
       color:#fff;
       border:2px solid #66BB6A;
-      display:none;
+      box-shadow:0 4px 20px rgba(76, 175, 80, 0.4);
       animation: pulse-green 2s infinite;
+      font-size:clamp(0.9rem, 3vw, 1.4rem);
     }
-    .lobby-btn.install-btn.visible {
-      display:block;
-    }
+    .lobby-btn.install-btn:active { transform:scale(0.95); }
     @keyframes pulse-green {
-      0%, 100% { box-shadow: 0 0 10px rgba(76, 175, 80, 0.4); }
-      50% { box-shadow: 0 0 25px rgba(76, 175, 80, 0.8); }
+      0%, 100% { box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4); }
+      50% { box-shadow: 0 4px 35px rgba(76, 175, 80, 0.8); }
     }
-    .lobby-btn.install-btn:active { transform:scale(0.94); }
 
     #ui-layer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none; }
 
@@ -181,30 +180,6 @@
     .inv-slot, .lobby-btn, #ui-back, .final-btn, #letter-close, #diary-close, #fullscreen-btn {
       touch-action: manipulation;
     }
-
-    #pwa-install-banner {
-      position:absolute; bottom:80px; left:50%; transform:translateX(-50%);
-      background:rgba(20,20,30,0.95); backdrop-filter:blur(12px);
-      padding:12px 20px; border-radius:20px;
-      border:1px solid #f1c40f;
-      color:#fff; font-size:0.9rem;
-      z-index:25;
-      display:none;
-      text-align:center;
-      max-width:90vw;
-      pointer-events:auto;
-      box-shadow:0 4px 30px rgba(0,0,0,0.8);
-    }
-    #pwa-install-banner.visible { display:block; }
-    #pwa-install-banner button {
-      background:linear-gradient(180deg, #f1c40f, #b8860b);
-      border:none; color:#0a0a0a;
-      padding:8px 20px; border-radius:20px;
-      font-weight:bold; font-size:0.9rem;
-      cursor:pointer; margin-left:10px;
-      touch-action:manipulation;
-    }
-    #pwa-install-banner button:active { transform:scale(0.95); }
   </style>
 </head>
 <body>
@@ -228,11 +203,6 @@
   </div>
 
   <button id="fullscreen-btn">⛶ ВО ВЕСЬ ЭКРАН</button>
-
-  <div id="pwa-install-banner">
-    📲 Установите игру на главный экран
-    <button id="pwa-install-btn">УСТАНОВИТЬ</button>
-  </div>
 
   <div id="letter-overlay">
     <div id="letter-content">
@@ -304,37 +274,6 @@ if ('serviceWorker' in navigator) {
 
 // ========== PWA INSTALL ==========
 let deferredPrompt = null;
-let installButtonShown = false;
-
-// Функция показа кнопки установки
-function showInstallButton() {
-  const lobbyInstallBtn = document.getElementById('lobby-install-btn');
-  const banner = document.getElementById('pwa-install-banner');
-  
-  if (lobbyInstallBtn && !lobbyInstallBtn.classList.contains('visible')) {
-    lobbyInstallBtn.classList.add('visible');
-    installButtonShown = true;
-    console.log('Кнопка установки показана в лобби');
-  }
-  
-  if (banner && !banner.classList.contains('visible')) {
-    banner.classList.add('visible');
-  }
-}
-
-// Функция скрытия кнопки установки
-function hideInstallButton() {
-  const lobbyInstallBtn = document.getElementById('lobby-install-btn');
-  const banner = document.getElementById('pwa-install-banner');
-  
-  if (lobbyInstallBtn) {
-    lobbyInstallBtn.classList.remove('visible');
-  }
-  if (banner) {
-    banner.classList.remove('visible');
-  }
-  installButtonShown = false;
-}
 
 // Обработчик установки
 function handleInstall() {
@@ -343,20 +282,15 @@ function handleInstall() {
     deferredPrompt.userChoice.then((choiceResult) => {
       if (choiceResult.outcome === 'accepted') {
         console.log('Пользователь установил PWA');
-        hideInstallButton();
+        document.getElementById('lobby-install-btn').style.display = 'none';
       } else {
         console.log('Пользователь отклонил установку');
       }
       deferredPrompt = null;
     });
   } else {
-    // Если deferredPrompt нет, но кнопка видна - пробуем альтернативный способ
-    console.log('deferredPrompt отсутствует, пробуем альтернативный способ');
-    // Для Android Chrome можно попробовать показать нативный диалог
-    if (window.navigator && window.navigator.share) {
-      // Небольшая подсказка пользователю
-      alert('Нажмите "Добавить на главный экран" в меню браузера');
-    }
+    // Если deferredPrompt нет, показываем инструкцию
+    alert('📲 Чтобы установить игру:\n1. Нажмите на меню браузера (три точки)\n2. Выберите "Добавить на главный экран"\n3. Нажмите "Добавить"');
   }
 }
 
@@ -366,67 +300,39 @@ window.addEventListener('beforeinstallprompt', (e) => {
   deferredPrompt = e;
   console.log('beforeinstallprompt событие получено');
   
-  // Показываем кнопку установки в лобби
-  showInstallButton();
-  
-  // Назначаем обработчики для кнопок
-  const lobbyInstallBtn = document.getElementById('lobby-install-btn');
-  const pwaInstallBtn = document.getElementById('pwa-install-btn');
-  const banner = document.getElementById('pwa-install-banner');
-  
-  if (lobbyInstallBtn) {
-    // Удаляем старые обработчики
-    const newBtn = lobbyInstallBtn.cloneNode(true);
-    lobbyInstallBtn.parentNode.replaceChild(newBtn, lobbyInstallBtn);
-    newBtn.addEventListener('click', handleInstall);
-    newBtn.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      handleInstall();
-    });
-  }
-  
-  if (pwaInstallBtn) {
-    const newBtn = pwaInstallBtn.cloneNode(true);
-    pwaInstallBtn.parentNode.replaceChild(newBtn, pwaInstallBtn);
-    newBtn.addEventListener('click', handleInstall);
-    newBtn.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      handleInstall();
-    });
-  }
+  // Показываем кнопку установки
+  const installBtn = document.getElementById('lobby-install-btn');
+  installBtn.style.display = 'block';
 });
 
 // Если событие уже произошло до загрузки скрипта
 if (window.deferredPrompt) {
   deferredPrompt = window.deferredPrompt;
-  showInstallButton();
+  document.getElementById('lobby-install-btn').style.display = 'block';
 }
 
 // Проверка, установлено ли уже приложение
 window.addEventListener('appinstalled', () => {
   console.log('PWA установлено!');
-  hideInstallButton();
+  document.getElementById('lobby-install-btn').style.display = 'none';
   deferredPrompt = null;
 });
 
-// Также проверяем, не запущено ли приложение в режиме PWA
-if (window.matchMedia('(display-mode: standalone)').matches) {
+// Проверяем, не запущено ли приложение в режиме PWA
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
   console.log('Приложение запущено в режиме PWA');
-  hideInstallButton();
+  document.getElementById('lobby-install-btn').style.display = 'none';
 }
 
-// Дополнительная проверка через display-mode
-if (window.navigator.standalone) {
-  console.log('Приложение запущено в режиме PWA (iOS)');
-  hideInstallButton();
-}
-
-// Периодическая проверка, не появилась ли возможность установки
-setInterval(() => {
-  if (deferredPrompt && !installButtonShown) {
-    showInstallButton();
-  }
-}, 3000);
+// Назначаем обработчик для кнопки установки
+document.addEventListener('DOMContentLoaded', function() {
+  const installBtn = document.getElementById('lobby-install-btn');
+  installBtn.addEventListener('click', handleInstall);
+  installBtn.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    handleInstall();
+  });
+});
 
 // ========== GAME CODE ==========
 (function(){
@@ -810,11 +716,6 @@ setInterval(() => {
     loading.classList.add('hidden');
     handleResize();
     fullscreenBtn.classList.remove('hidden');
-    
-    // Проверяем, не появилась ли возможность установки после загрузки
-    if (deferredPrompt && !installButtonShown) {
-      showInstallButton();
-    }
   }, 500);
   requestAnimationFrame(loop);
 })();
