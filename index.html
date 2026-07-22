@@ -46,12 +46,16 @@
       display:flex; justify-content:center; align-items:center; flex-direction:column;
       z-index:30; background:rgba(10,10,20,0.96);
       transition:opacity 0.5s; pointer-events:auto;
+      padding:1rem;
     }
     #lobby-layer.hidden { opacity:0; pointer-events:none; }
     .lobby-title { font-size:clamp(2rem, 8vw, 5rem); color:#e0a800; text-shadow:0 0 30px rgba(224,168,0,0.4); letter-spacing:0.3em; font-weight:bold; margin-bottom:0.5rem; text-align:center; }
     .lobby-subtitle { font-size:clamp(0.8rem, 2.5vw, 1.4rem); color:#8899aa; letter-spacing:0.3em; margin-bottom:2.5rem; text-align:center; }
-    .lobby-btn { background:linear-gradient(180deg, #f1c40f, #b8860b); border:none; color:#0a0a0a; padding:1rem 2.5rem; border-radius:2.5rem; font-weight:bold; font-size:clamp(1rem, 3.5vw, 1.6rem); cursor:pointer; letter-spacing:0.1em; transition:0.15s; touch-action:manipulation; }
+    .lobby-btn { background:linear-gradient(180deg, #f1c40f, #b8860b); border:none; color:#0a0a0a; padding:1rem 2.5rem; border-radius:2.5rem; font-weight:bold; font-size:clamp(1rem, 3.5vw, 1.6rem); cursor:pointer; letter-spacing:0.1em; transition:0.15s; touch-action:manipulation; margin:0.3rem; }
     .lobby-btn:active { transform:scale(0.94); }
+    .lobby-btn.install-btn { background:linear-gradient(180deg, #4CAF50, #2E7D32); color:#fff; border:2px solid #66BB6A; }
+    .lobby-btn.install-btn:active { transform:scale(0.94); }
+    .lobby-btn.install-btn.hidden { display:none; }
 
     #ui-layer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none; }
 
@@ -116,21 +120,6 @@
     #fullscreen-btn:active { background:#333; transform:scale(0.95); }
     #fullscreen-btn.hidden { display:none; }
 
-    #install-btn {
-      position:absolute; top:52px; right:8px;
-      background:rgba(20,20,30,0.85); border:2px solid #f1c40f; color:#f1c40f;
-      padding:6px 12px; border-radius:18px;
-      cursor:pointer; font-size:0.8rem;
-      pointer-events:auto; z-index:15;
-      touch-action:manipulation;
-      min-height:36px;
-      backdrop-filter:blur(10px);
-      transition:0.1s;
-      display:none;
-    }
-    #install-btn:active { background:#333; transform:scale(0.95); }
-    #install-btn.visible { display:block; }
-
     #win-screen {
       position:absolute; top:0; left:0; width:100%; height:100%;
       display:none; justify-content:center; align-items:center; flex-direction:column;
@@ -154,11 +143,10 @@
     #loading { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#000; z-index:60; color:#777; font-size:1rem; letter-spacing:0.3em; transition:opacity 0.8s; }
     #loading.hidden { opacity:0; pointer-events:none; }
     
-    .inv-slot, .lobby-btn, #ui-back, .final-btn, #letter-close, #diary-close, #fullscreen-btn, #install-btn {
+    .inv-slot, .lobby-btn, #ui-back, .final-btn, #letter-close, #diary-close, #fullscreen-btn {
       touch-action: manipulation;
     }
 
-    /* PWA стили */
     #pwa-install-banner {
       position:absolute; bottom:80px; left:50%; transform:translateX(-50%);
       background:rgba(20,20,30,0.95); backdrop-filter:blur(12px);
@@ -193,6 +181,7 @@
     <div class="lobby-title">АНОМАЛИЯ</div>
     <div class="lobby-subtitle">ТАЙНА ЗИМНЕГО ЛЕСА</div>
     <button class="lobby-btn" id="start-btn">▶ НАЧАТЬ</button>
+    <button class="lobby-btn install-btn hidden" id="lobby-install-btn">📲 УСТАНОВИТЬ ИГРУ</button>
   </div>
 
   <div id="ui-layer">
@@ -202,7 +191,6 @@
   </div>
 
   <button id="fullscreen-btn">⛶ ВО ВЕСЬ ЭКРАН</button>
-  <button id="install-btn">📱 УСТАНОВИТЬ</button>
 
   <div id="pwa-install-banner">
     📲 Установите игру на главный экран
@@ -284,11 +272,12 @@ window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
   
-  const installBtn = document.getElementById('install-btn');
+  // Показываем кнопку установки в лобби
+  const lobbyInstallBtn = document.getElementById('lobby-install-btn');
   const banner = document.getElementById('pwa-install-banner');
   const pwaInstallBtn = document.getElementById('pwa-install-btn');
   
-  installBtn.classList.add('visible');
+  lobbyInstallBtn.classList.remove('hidden');
   banner.classList.add('visible');
   
   const handleInstall = () => {
@@ -301,19 +290,28 @@ window.addEventListener('beforeinstallprompt', (e) => {
           console.log('Пользователь отклонил установку');
         }
         deferredPrompt = null;
-        installBtn.classList.remove('visible');
+        lobbyInstallBtn.classList.add('hidden');
         banner.classList.remove('visible');
       });
     }
   };
   
-  installBtn.onclick = handleInstall;
+  lobbyInstallBtn.onclick = handleInstall;
+  lobbyInstallBtn.ontouchend = (e) => {
+    e.preventDefault();
+    handleInstall();
+  };
+  
   pwaInstallBtn.onclick = handleInstall;
+  pwaInstallBtn.ontouchend = (e) => {
+    e.preventDefault();
+    handleInstall();
+  };
 });
 
 window.addEventListener('appinstalled', () => {
   console.log('PWA установлено!');
-  document.getElementById('install-btn').classList.remove('visible');
+  document.getElementById('lobby-install-btn').classList.add('hidden');
   document.getElementById('pwa-install-banner').classList.remove('visible');
 });
 
