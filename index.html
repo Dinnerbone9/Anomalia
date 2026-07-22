@@ -96,6 +96,21 @@
     }
     #ui-back:active { background:#333; transform:scale(0.95); }
 
+    #fullscreen-btn {
+      position:absolute; top:8px; right:8px;
+      background:rgba(20,20,30,0.85); border:2px solid #555; color:#ccc;
+      padding:6px 12px; border-radius:18px;
+      cursor:pointer; font-size:0.8rem;
+      pointer-events:auto; z-index:15;
+      touch-action:manipulation;
+      min-height:36px;
+      backdrop-filter:blur(10px);
+      transition:0.1s;
+      display:block;
+    }
+    #fullscreen-btn:active { background:#333; transform:scale(0.95); }
+    #fullscreen-btn.hidden { display:none; }
+
     #win-screen {
       position:absolute; top:0; left:0; width:100%; height:100%;
       display:none; justify-content:center; align-items:center; flex-direction:column;
@@ -119,7 +134,7 @@
     #loading { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#000; z-index:60; color:#777; font-size:1rem; letter-spacing:0.3em; transition:opacity 0.8s; }
     #loading.hidden { opacity:0; pointer-events:none; }
     
-    .inv-slot, .lobby-btn, #ui-back, .final-btn, #letter-close, #diary-close {
+    .inv-slot, .lobby-btn, #ui-back, .final-btn, #letter-close, #diary-close, #fullscreen-btn {
       touch-action: manipulation;
     }
   </style>
@@ -140,6 +155,8 @@
     <div id="ui-desc"></div>
     <button id="ui-back">↩ НАЗАД</button>
   </div>
+
+  <button id="fullscreen-btn">⛶ ВО ВЕСЬ ЭКРАН</button>
 
   <div id="letter-overlay">
     <div id="letter-content">
@@ -178,6 +195,44 @@
   const winScreen=document.getElementById('win-screen');
   const letterOverlay=document.getElementById('letter-overlay');
   const diaryOverlay=document.getElementById('diary-overlay');
+  const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+  // ========== FULLSCREEN ==========
+  function toggleFullscreen() {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      const el = document.documentElement;
+      if (el.requestFullscreen) {
+        el.requestFullscreen();
+      } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen();
+      }
+      fullscreenBtn.textContent = '⛶ ВЫЙТИ';
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
+      fullscreenBtn.textContent = '⛶ ВО ВЕСЬ ЭКРАН';
+    }
+  }
+
+  fullscreenBtn.addEventListener('click', toggleFullscreen);
+  fullscreenBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    toggleFullscreen();
+  });
+
+  document.addEventListener('fullscreenchange', updateFullscreenBtn);
+  document.addEventListener('webkitfullscreenchange', updateFullscreenBtn);
+
+  function updateFullscreenBtn() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      fullscreenBtn.textContent = '⛶ ВЫЙТИ';
+    } else {
+      fullscreenBtn.textContent = '⛶ ВО ВЕСЬ ЭКРАН';
+    }
+  }
 
   // ========== STATE ==========
   let inventory=[], selectedItem=null, viewMode='main', zoomTarget=null;
@@ -229,7 +284,6 @@
       cy = e.clientY;
     }
     
-    // Нормализуем координаты относительно размера canvas
     const scaleX = ZOOM_W / rect.width;
     const scaleY = ZOOM_H / rect.height;
     
@@ -449,6 +503,8 @@
     uiLayer.style.display='block';
     gameStarted=true;level=1;currentZone='room';
     setZones();resizeCanvas();drawScene();renderInv();
+    // Показываем кнопку полноэкранного режима
+    fullscreenBtn.classList.remove('hidden');
   }
   function renderInv(){invEl.innerHTML='';if(!inventory.length){let d=document.createElement('div');d.className='inv-slot empty';d.innerText='—';invEl.appendChild(d)}else{inventory.forEach(item=>{let s=document.createElement('div');s.className='inv-slot';s.innerText=icons[item]||'❓';s.addEventListener('click',(e)=>{e.stopPropagation();if(gameWin)return;document.querySelectorAll('.inv-slot').forEach(el=>el.classList.remove('selected'));s.classList.add('selected');selectedItem=item;showDesc(item)});s.addEventListener('touchend',(e)=>{e.stopPropagation();e.preventDefault();if(gameWin)return;document.querySelectorAll('.inv-slot').forEach(el=>el.classList.remove('selected'));s.classList.add('selected');selectedItem=item;showDesc(item)});invEl.appendChild(s)})}}
   function enterL2(){level=2;currentZone='basement';viewMode='main';backBtn.style.display='none';setZones();drawScene();renderInv()}
@@ -493,7 +549,6 @@
   document.getElementById('diary-close').addEventListener('click',()=>diaryOverlay.classList.remove('active'));
   document.getElementById('diary-close').addEventListener('touchend',(e)=>{e.preventDefault();diaryOverlay.classList.remove('active')});
 
-  // Исправляем проблему с размерами при загрузке и повороте
   function handleResize(){
     resizeCanvas();
     drawScene();
@@ -508,6 +563,8 @@
   setTimeout(()=>{
     loading.classList.add('hidden');
     handleResize();
+    // Показываем кнопку полноэкранного режима в лобби
+    fullscreenBtn.classList.remove('hidden');
   }, 500);
   requestAnimationFrame(loop);
 })();
