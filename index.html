@@ -21,13 +21,17 @@
       position:fixed; top:0; left:0; right:0; bottom:0;
       width:100%; height:100%;
       background:#000; overflow:hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     canvas {
       display:block;
-      position:absolute; top:0; left:0;
-      width:100%; height:100%;
+      width:100% !important;
+      height:100% !important;
       touch-action:manipulation;
       touch-action: none;
+      background: #000;
     }
 
     #lobby-layer {
@@ -51,6 +55,7 @@
       pointer-events:auto; display:flex; gap:5px; flex-wrap:wrap;
       max-width:calc(100vw - 16px);
       touch-action:manipulation;
+      z-index:10;
     }
     .inv-slot {
       width:44px; height:44px;
@@ -73,6 +78,7 @@
       pointer-events:none; text-align:center; white-space:nowrap;
       opacity:0; transition:opacity 0.3s; max-width:80vw;
       border:1px solid rgba(255,255,255,0.08);
+      z-index:10;
     }
     #ui-desc.visible { opacity:1; }
 
@@ -84,6 +90,7 @@
       pointer-events:auto; display:none; transition:0.1s;
       touch-action:manipulation;
       min-height:44px; min-width:80px;
+      z-index:10;
     }
     #ui-back:active { background:#333; transform:scale(0.95); }
 
@@ -193,13 +200,18 @@
 
   function resizeCanvas(){
     const r=wrapper.getBoundingClientRect();
-    const dpr=Math.min(window.devicePixelRatio||1,2);
-    canvas.width=r.width*dpr;
-    canvas.height=r.height*dpr;
-    canvas.style.width=r.width+'px';
-    canvas.style.height=r.height+'px';
-    ctx.setTransform(1,0,0,1,0,0);
-    ctx.scale(dpr,dpr);
+    // Используем точные размеры контейнера
+    const w = r.width;
+    const h = r.height;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
   }
 
   function getPos(e){
@@ -215,7 +227,14 @@
       cx=e.clientX;
       cy=e.clientY;
     }
-    return{x:(cx-r.left)*(ZOOM_W/r.width),y:(cy-r.top)*(ZOOM_H/r.height)};
+    // Корректируем координаты относительно canvas
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = ZOOM_W / rect.width;
+    const scaleY = ZOOM_H / rect.height;
+    return {
+      x: (cx - rect.left) * scaleX,
+      y: (cy - rect.top) * scaleY
+    };
   }
 
   // ========== DRAWING ==========
@@ -345,12 +364,33 @@
   function showDesc(t){if(!t){descEl.classList.remove('visible');descEl.innerText='';return}descEl.innerText=t;descEl.classList.add('visible');clearTimeout(descEl._to);descEl._to=setTimeout(()=>descEl.classList.remove('visible'),1800)}
 
   function drawScene(){
-    const w=canvas.width/window.devicePixelRatio,h=canvas.height/window.devicePixelRatio,time=Date.now()/1000;
-    ctx.clearRect(0,0,w,h);
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    
+    ctx.clearRect(0, 0, w, h);
     ctx.save();
-    ctx.scale(w/ZOOM_W,h/ZOOM_H);
-    if(!gameStarted){ctx.fillStyle='#1a1a2e';ctx.fillRect(0,0,ZOOM_W,ZOOM_H)}
-    else if(viewMode==='main'){if(level===1)drawRoom();else if(level===2){if(currentZone==='basement')drawBasement();else drawGenerator()}else if(level===3){if(currentZone==='bunker_hall')drawBunkerHall();else if(currentZone==='lab1')drawLab1();else drawRestRoom()}else if(level===4)drawForest(time);else if(level===5)drawGlade(time);else if(level===6)drawCabin()}else drawZoom();
+    ctx.scale(w / ZOOM_W, h / ZOOM_H);
+    
+    if(!gameStarted){
+      ctx.fillStyle='#1a1a2e';
+      ctx.fillRect(0,0,ZOOM_W,ZOOM_H);
+    } else if(viewMode==='main'){
+      if(level===1) drawRoom();
+      else if(level===2){
+        if(currentZone==='basement') drawBasement();
+        else drawGenerator();
+      } else if(level===3){
+        if(currentZone==='bunker_hall') drawBunkerHall();
+        else if(currentZone==='lab1') drawLab1();
+        else drawRestRoom();
+      } else if(level===4) drawForest(Date.now()/1000);
+      else if(level===5) drawGlade(Date.now()/1000);
+      else if(level===6) drawCabin();
+    } else {
+      drawZoom();
+    }
+    
     ctx.restore();
   }
 
@@ -389,7 +429,6 @@
     drawScene();
   }
 
-  // Поддержка касаний и кликов
   function handleEvent(e){
     e.preventDefault();
     handleAction(e);
@@ -398,7 +437,6 @@
   canvas.addEventListener('touchstart', handleEvent, {passive: false});
   canvas.addEventListener('click', handleEvent);
 
-  // Блокировка масштабирования жестами
   document.addEventListener('gesturestart', (e)=>e.preventDefault());
   document.addEventListener('gesturechange', (e)=>e.preventDefault());
   document.addEventListener('gestureend', (e)=>e.preventDefault());
