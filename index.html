@@ -14,6 +14,7 @@
       background:#000; touch-action:manipulation;
       font-family:'Georgia',serif;
       position:fixed; top:0; left:0; right:0; bottom:0;
+      user-select: none; -webkit-user-select: none;
     }
     body { background:#000; }
     #game-wrapper {
@@ -26,6 +27,7 @@
       position:absolute; top:0; left:0;
       width:100%; height:100%;
       touch-action:manipulation;
+      touch-action: none;
     }
 
     #lobby-layer {
@@ -37,7 +39,7 @@
     #lobby-layer.hidden { opacity:0; pointer-events:none; }
     .lobby-title { font-size:clamp(2rem, 8vw, 5rem); color:#e0a800; text-shadow:0 0 30px rgba(224,168,0,0.4); letter-spacing:0.3em; font-weight:bold; margin-bottom:0.5rem; text-align:center; }
     .lobby-subtitle { font-size:clamp(0.8rem, 2.5vw, 1.4rem); color:#8899aa; letter-spacing:0.3em; margin-bottom:2.5rem; text-align:center; }
-    .lobby-btn { background:linear-gradient(180deg, #f1c40f, #b8860b); border:none; color:#0a0a0a; padding:1rem 2.5rem; border-radius:2.5rem; font-weight:bold; font-size:clamp(1rem, 3.5vw, 1.6rem); cursor:pointer; letter-spacing:0.1em; transition:0.15s; }
+    .lobby-btn { background:linear-gradient(180deg, #f1c40f, #b8860b); border:none; color:#0a0a0a; padding:1rem 2.5rem; border-radius:2.5rem; font-weight:bold; font-size:clamp(1rem, 3.5vw, 1.6rem); cursor:pointer; letter-spacing:0.1em; transition:0.15s; touch-action:manipulation; }
     .lobby-btn:active { transform:scale(0.94); }
 
     #ui-layer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none; }
@@ -48,36 +50,42 @@
       padding:6px; border-radius:16px; border:1px solid rgba(120,120,140,0.3);
       pointer-events:auto; display:flex; gap:5px; flex-wrap:wrap;
       max-width:calc(100vw - 16px);
+      touch-action:manipulation;
     }
     .inv-slot {
-      width:42px; height:42px;
+      width:44px; height:44px;
       background:radial-gradient(circle at 35% 35%, #2a2a3e, #14142a);
       border:2px solid #3a3a4e; border-radius:10px;
       display:flex; justify-content:center; align-items:center;
-      font-size:1.3rem; cursor:pointer; transition:0.1s;
+      font-size:1.4rem; cursor:pointer; transition:0.1s;
+      touch-action:manipulation;
+      min-width:44px; min-height:44px;
     }
     .inv-slot:active { transform:scale(0.9); }
     .inv-slot.selected { border-color:#f1c40f; box-shadow:0 0 15px rgba(241,196,15,0.4); }
     .inv-slot.empty { color:#333; font-size:0.7rem; pointer-events:none; }
 
     #ui-desc {
-      position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+      position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
       background:rgba(8,8,15,0.92); backdrop-filter:blur(12px);
-      padding:6px 16px; border-radius:20px;
-      font-size:0.8rem; color:#e0e0e0;
+      padding:8px 20px; border-radius:24px;
+      font-size:0.9rem; color:#e0e0e0;
       pointer-events:none; text-align:center; white-space:nowrap;
-      opacity:0; transition:opacity 0.3s; max-width:75vw;
+      opacity:0; transition:opacity 0.3s; max-width:80vw;
+      border:1px solid rgba(255,255,255,0.08);
     }
     #ui-desc.visible { opacity:1; }
 
     #ui-back {
-      position:absolute; bottom:16px; right:8px;
+      position:absolute; bottom:20px; right:12px;
       background:rgba(20,20,30,0.92); border:2px solid #555; color:#ccc;
-      padding:6px 12px; border-radius:18px;
-      cursor:pointer; font-size:0.8rem;
+      padding:8px 16px; border-radius:22px;
+      cursor:pointer; font-size:0.9rem;
       pointer-events:auto; display:none; transition:0.1s;
+      touch-action:manipulation;
+      min-height:44px; min-width:80px;
     }
-    #ui-back:active { background:#333; }
+    #ui-back:active { background:#333; transform:scale(0.95); }
 
     #win-screen {
       position:absolute; top:0; left:0; width:100%; height:100%;
@@ -86,7 +94,7 @@
     }
     #win-screen h1 { color:#00ffcc; font-size:clamp(2rem, 7vw, 3.5rem); margin-bottom:1rem; }
     #win-screen p { color:#bbb; font-size:0.9rem; max-width:80vw; margin-bottom:2rem; }
-    #win-screen .final-btn { background:linear-gradient(180deg, #f1c40f, #b8860b); border:none; color:#0a0a0a; padding:0.8rem 2rem; border-radius:2.5rem; font-weight:bold; font-size:0.9rem; cursor:pointer; }
+    #win-screen .final-btn { background:linear-gradient(180deg, #f1c40f, #b8860b); border:none; color:#0a0a0a; padding:0.8rem 2rem; border-radius:2.5rem; font-weight:bold; font-size:0.9rem; cursor:pointer; touch-action:manipulation; min-height:48px; }
 
     #letter-overlay, #diary-overlay {
       position:absolute; top:0; left:0; width:100%; height:100%;
@@ -96,11 +104,16 @@
     #letter-overlay.active, #diary-overlay.active { display:flex; }
     #letter-content { background:#f4e4c1; padding:1.5rem; border-radius:1rem; max-width:min(90vw, 450px); color:#1a1008; font-size:0.9rem; line-height:1.5; max-height:65vh; overflow-y:auto; }
     #diary-content { background:#1a1a2e; padding:1.5rem; border-radius:1rem; max-width:min(90vw, 450px); color:#d0d0e0; font-size:0.9rem; line-height:1.5; border:1px solid #444; max-height:65vh; overflow-y:auto; }
-    #letter-close, #diary-close { margin-top:1rem; background:#2a1a10; color:#f4e4c1; border:none; padding:0.6rem 1.5rem; border-radius:1.8rem; font-weight:bold; cursor:pointer; font-size:0.8rem; }
+    #letter-close, #diary-close { margin-top:1rem; background:#2a1a10; color:#f4e4c1; border:none; padding:0.8rem 2rem; border-radius:2rem; font-weight:bold; cursor:pointer; font-size:0.9rem; touch-action:manipulation; min-height:44px; }
     #diary-close { background:linear-gradient(180deg, #e0a800, #b8860b); color:#0a0a0a; }
 
     #loading { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#000; z-index:60; color:#777; font-size:1rem; letter-spacing:0.3em; transition:opacity 0.8s; }
     #loading.hidden { opacity:0; pointer-events:none; }
+    
+    /* Увеличенные зоны для пальцев */
+    .inv-slot, .lobby-btn, #ui-back, .final-btn, #letter-close, #diary-close {
+      touch-action: manipulation;
+    }
   </style>
 </head>
 <body>
@@ -191,8 +204,17 @@
 
   function getPos(e){
     const r=canvas.getBoundingClientRect();
-    const cx=e.touches?e.touches[0].clientX:e.clientX;
-    const cy=e.touches?e.touches[0].clientY:e.clientY;
+    let cx, cy;
+    if(e.touches && e.touches.length > 0){
+      cx=e.touches[0].clientX;
+      cy=e.touches[0].clientY;
+    } else if(e.changedTouches && e.changedTouches.length > 0){
+      cx=e.changedTouches[0].clientX;
+      cy=e.changedTouches[0].clientY;
+    } else {
+      cx=e.clientX;
+      cy=e.clientY;
+    }
     return{x:(cx-r.left)*(ZOOM_W/r.width),y:(cy-r.top)*(ZOOM_H/r.height)};
   }
 
@@ -335,11 +357,24 @@
   // ========== TOUCH / CLICK ==========
   function handleAction(e){
     if(!gameStarted||gameWin)return;
-    const{x,y}=getPos(e);
+    const pos=getPos(e);
     if(viewMode==='zoom'){handleZoom();return}
     let cl=null;
-    for(let[k,z]of Object.entries(zones)){if(k==='hatch'&&!state.fridgeMoved)continue;if(x>=z.x&&x<=z.x+z.w&&y>=z.y&&y<=z.y+z.h){cl=k;break}}
-    if(!cl){if(selectedItem==='коробка'&&!state.screwdriverTaken&&level===1){inventory=inventory.filter(i=>i!=='коробка');inventory.push('отвертка');state.screwdriverTaken=true;renderInv();showDesc('Отвертка 🪛');selectedItem=null}return}
+    for(let[k,z]of Object.entries(zones)){
+      if(k==='hatch'&&!state.fridgeMoved)continue;
+      if(pos.x>=z.x&&pos.x<=z.x+z.w&&pos.y>=z.y&&pos.y<=z.y+z.h){cl=k;break}
+    }
+    if(!cl){
+      if(selectedItem==='коробка'&&!state.screwdriverTaken&&level===1){
+        inventory=inventory.filter(i=>i!=='коробка');
+        inventory.push('отвертка');
+        state.screwdriverTaken=true;
+        renderInv();
+        showDesc('Отвертка 🪛');
+        selectedItem=null;
+      }
+      return;
+    }
     if(cl==='hatch'&&state.hatchOpened)enterL2();
     else if(cl==='passage'&&level===2){currentZone='generator';setZones()}
     else if(cl==='exit'&&level===2){currentZone='basement';setZones()}
@@ -354,17 +389,19 @@
     drawScene();
   }
 
-  canvas.addEventListener('touchstart',(e)=>{
+  // Поддержка касаний и кликов
+  function handleEvent(e){
     e.preventDefault();
     handleAction(e);
-  }, {passive: false});
-  canvas.addEventListener('click',(e)=>{
-    handleAction(e);
-  });
+  }
 
-  document.addEventListener('gesturestart',(e)=>e.preventDefault());
-  document.addEventListener('gesturechange',(e)=>e.preventDefault());
-  document.addEventListener('gestureend',(e)=>e.preventDefault());
+  canvas.addEventListener('touchstart', handleEvent, {passive: false});
+  canvas.addEventListener('click', handleEvent);
+
+  // Блокировка масштабирования жестами
+  document.addEventListener('gesturestart', (e)=>e.preventDefault());
+  document.addEventListener('gesturechange', (e)=>e.preventDefault());
+  document.addEventListener('gestureend', (e)=>e.preventDefault());
 
   // ========== LOGIC ==========
   function startGame(){
@@ -373,7 +410,7 @@
     gameStarted=true;level=1;currentZone='room';
     setZones();resizeCanvas();drawScene();renderInv();
   }
-  function renderInv(){invEl.innerHTML='';if(!inventory.length){let d=document.createElement('div');d.className='inv-slot empty';d.innerText='—';invEl.appendChild(d)}else{inventory.forEach(item=>{let s=document.createElement('div');s.className='inv-slot';s.innerText=icons[item]||'❓';s.addEventListener('click',(e)=>{e.stopPropagation();if(gameWin)return;document.querySelectorAll('.inv-slot').forEach(el=>el.classList.remove('selected'));s.classList.add('selected');selectedItem=item;showDesc(item)});invEl.appendChild(s)})}}
+  function renderInv(){invEl.innerHTML='';if(!inventory.length){let d=document.createElement('div');d.className='inv-slot empty';d.innerText='—';invEl.appendChild(d)}else{inventory.forEach(item=>{let s=document.createElement('div');s.className='inv-slot';s.innerText=icons[item]||'❓';s.addEventListener('click',(e)=>{e.stopPropagation();if(gameWin)return;document.querySelectorAll('.inv-slot').forEach(el=>el.classList.remove('selected'));s.classList.add('selected');selectedItem=item;showDesc(item)});s.addEventListener('touchend',(e)=>{e.stopPropagation();e.preventDefault();if(gameWin)return;document.querySelectorAll('.inv-slot').forEach(el=>el.classList.remove('selected'));s.classList.add('selected');selectedItem=item;showDesc(item)});invEl.appendChild(s)})}}
   function enterL2(){level=2;currentZone='basement';viewMode='main';backBtn.style.display='none';setZones();drawScene();renderInv()}
   function enterL3(){level=3;currentZone='bunker_hall';viewMode='main';backBtn.style.display='none';setZones();drawScene();renderInv()}
   function enterForest(){level=4;currentZone='forest';viewMode='main';backBtn.style.display='none';setZones();drawScene();renderInv()}
@@ -417,7 +454,7 @@
   document.getElementById('diary-close').addEventListener('touchend',(e)=>{e.preventDefault();diaryOverlay.classList.remove('active')});
 
   window.addEventListener('resize',()=>{resizeCanvas();drawScene()});
-  window.addEventListener('orientationchange',()=>setTimeout(()=>{resizeCanvas();drawScene()},200));
+  window.addEventListener('orientationchange',()=>setTimeout(()=>{resizeCanvas();drawScene()},300));
 
   function loop(){if(gameStarted)drawScene();requestAnimationFrame(loop)}
   setTimeout(()=>{loading.classList.add('hidden');resizeCanvas();drawScene()},500);
