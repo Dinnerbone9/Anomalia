@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#000000">
   <title>Аномалия: Финал</title>
@@ -181,6 +180,24 @@
     else if(level===6)zones={diary:{x:460,y:350,w:180,h:35},fireplace:{x:50,y:240,w:180,h:220},bed_cabin:{x:680,y:350,w:140,h:100},backExit:{x:780,y:100,w:220,h:420}};
   }
 
+  // Функция для входа в полноэкранный режим на Android
+  function enterFullscreen() {
+    const el = document.documentElement;
+    if (el.requestFullscreen) {
+      el.requestFullscreen().catch(() => {});
+    } else if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen();
+    }
+  }
+
+  // Автоматический вход в полноэкранный режим при старте игры
+  function autoFullscreen() {
+    // Пробуем войти в полноэкранный режим
+    enterFullscreen();
+    // Если не получилось, пробуем ещё раз через секунду
+    setTimeout(enterFullscreen, 1000);
+  }
+
   function resizeCanvas(){
     const r=wrapper.getBoundingClientRect();
     const dpr=Math.min(window.devicePixelRatio||1,2);
@@ -329,7 +346,6 @@
     const w=canvas.width/window.devicePixelRatio,h=canvas.height/window.devicePixelRatio,time=Date.now()/1000;
     ctx.clearRect(0,0,w,h);
     ctx.save();
-    // Заполняем весь экран без полей
     ctx.scale(w/ZOOM_W,h/ZOOM_H);
     if(!gameStarted){ctx.fillStyle='#1a1a2e';ctx.fillRect(0,0,ZOOM_W,ZOOM_H)}
     else if(viewMode==='main'){if(level===1)drawRoom();else if(level===2){if(currentZone==='basement')drawBasement();else drawGenerator()}else if(level===3){if(currentZone==='bunker_hall')drawBunkerHall();else if(currentZone==='lab1')drawLab1();else drawRestRoom()}else if(level===4)drawForest(time);else if(level===5)drawGlade(time);else if(level===6)drawCabin()}else drawZoom();
@@ -364,11 +380,13 @@
     e.preventDefault();
     window._lastEvent=e;
     handleAction();
+    // Повторная попытка входа в полноэкранный режим при касании
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      enterFullscreen();
+    }
   });
   canvas.addEventListener('touchend',(e)=>{
     e.preventDefault();
-    window._lastEvent=e;
-    handleAction();
   });
   canvas.addEventListener('click',(e)=>{
     window._lastEvent=e;
@@ -380,7 +398,14 @@
   document.addEventListener('gestureend',(e)=>e.preventDefault());
 
   // ========== LOGIC ==========
-  function startGame(){lobby.classList.add('hidden');uiLayer.style.display='block';gameStarted=true;level=1;currentZone='room';setZones();resizeCanvas();drawScene();renderInv()}
+  function startGame(){
+    lobby.classList.add('hidden');
+    uiLayer.style.display='block';
+    gameStarted=true;level=1;currentZone='room';
+    setZones();resizeCanvas();drawScene();renderInv();
+    // Автоматический полноэкранный режим при старте
+    autoFullscreen();
+  }
   function renderInv(){invEl.innerHTML='';if(!inventory.length){let d=document.createElement('div');d.className='inv-slot empty';d.innerText='—';invEl.appendChild(d)}else{inventory.forEach(item=>{let s=document.createElement('div');s.className='inv-slot';s.innerText=icons[item]||'❓';s.addEventListener('click',(e)=>{e.stopPropagation();if(gameWin)return;document.querySelectorAll('.inv-slot').forEach(el=>el.classList.remove('selected'));s.classList.add('selected');selectedItem=item;showDesc(item)});invEl.appendChild(s)})}}
   function enterL2(){level=2;currentZone='basement';viewMode='main';backBtn.style.display='none';setZones();drawScene();renderInv()}
   function enterL3(){level=3;currentZone='bunker_hall';viewMode='main';backBtn.style.display='none';setZones();drawScene();renderInv()}
