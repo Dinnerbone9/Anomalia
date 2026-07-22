@@ -51,11 +51,46 @@
     #lobby-layer.hidden { opacity:0; pointer-events:none; }
     .lobby-title { font-size:clamp(2rem, 8vw, 5rem); color:#e0a800; text-shadow:0 0 30px rgba(224,168,0,0.4); letter-spacing:0.3em; font-weight:bold; margin-bottom:0.5rem; text-align:center; }
     .lobby-subtitle { font-size:clamp(0.8rem, 2.5vw, 1.4rem); color:#8899aa; letter-spacing:0.3em; margin-bottom:2.5rem; text-align:center; }
-    .lobby-btn { background:linear-gradient(180deg, #f1c40f, #b8860b); border:none; color:#0a0a0a; padding:1rem 2.5rem; border-radius:2.5rem; font-weight:bold; font-size:clamp(1rem, 3.5vw, 1.6rem); cursor:pointer; letter-spacing:0.1em; transition:0.15s; touch-action:manipulation; margin:0.3rem; }
+    .lobby-btn-group {
+      display:flex;
+      flex-direction:column;
+      gap:0.8rem;
+      align-items:center;
+      width:100%;
+      max-width:400px;
+    }
+    .lobby-btn {
+      background:linear-gradient(180deg, #f1c40f, #b8860b);
+      border:none;
+      color:#0a0a0a;
+      padding:1rem 2.5rem;
+      border-radius:2.5rem;
+      font-weight:bold;
+      font-size:clamp(1rem, 3.5vw, 1.6rem);
+      cursor:pointer;
+      letter-spacing:0.1em;
+      transition:0.15s;
+      touch-action:manipulation;
+      width:100%;
+      min-height:60px;
+      text-align:center;
+    }
     .lobby-btn:active { transform:scale(0.94); }
-    .lobby-btn.install-btn { background:linear-gradient(180deg, #4CAF50, #2E7D32); color:#fff; border:2px solid #66BB6A; }
+    .lobby-btn.install-btn {
+      background:linear-gradient(180deg, #4CAF50, #2E7D32);
+      color:#fff;
+      border:2px solid #66BB6A;
+      display:none;
+      animation: pulse-green 2s infinite;
+    }
+    .lobby-btn.install-btn.visible {
+      display:block;
+    }
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 0 10px rgba(76, 175, 80, 0.4); }
+      50% { box-shadow: 0 0 25px rgba(76, 175, 80, 0.8); }
+    }
     .lobby-btn.install-btn:active { transform:scale(0.94); }
-    .lobby-btn.install-btn.hidden { display:none; }
 
     #ui-layer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none; }
 
@@ -180,8 +215,10 @@
   <div id="lobby-layer">
     <div class="lobby-title">АНОМАЛИЯ</div>
     <div class="lobby-subtitle">ТАЙНА ЗИМНЕГО ЛЕСА</div>
-    <button class="lobby-btn" id="start-btn">▶ НАЧАТЬ</button>
-    <button class="lobby-btn install-btn hidden" id="lobby-install-btn">📲 УСТАНОВИТЬ ИГРУ</button>
+    <div class="lobby-btn-group">
+      <button class="lobby-btn" id="start-btn">▶ НАЧАТЬ</button>
+      <button class="lobby-btn install-btn" id="lobby-install-btn">📲 УСТАНОВИТЬ ИГРУ</button>
+    </div>
   </div>
 
   <div id="ui-layer">
@@ -267,53 +304,129 @@ if ('serviceWorker' in navigator) {
 
 // ========== PWA INSTALL ==========
 let deferredPrompt = null;
+let installButtonShown = false;
 
+// Функция показа кнопки установки
+function showInstallButton() {
+  const lobbyInstallBtn = document.getElementById('lobby-install-btn');
+  const banner = document.getElementById('pwa-install-banner');
+  
+  if (lobbyInstallBtn && !lobbyInstallBtn.classList.contains('visible')) {
+    lobbyInstallBtn.classList.add('visible');
+    installButtonShown = true;
+    console.log('Кнопка установки показана в лобби');
+  }
+  
+  if (banner && !banner.classList.contains('visible')) {
+    banner.classList.add('visible');
+  }
+}
+
+// Функция скрытия кнопки установки
+function hideInstallButton() {
+  const lobbyInstallBtn = document.getElementById('lobby-install-btn');
+  const banner = document.getElementById('pwa-install-banner');
+  
+  if (lobbyInstallBtn) {
+    lobbyInstallBtn.classList.remove('visible');
+  }
+  if (banner) {
+    banner.classList.remove('visible');
+  }
+  installButtonShown = false;
+}
+
+// Обработчик установки
+function handleInstall() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('Пользователь установил PWA');
+        hideInstallButton();
+      } else {
+        console.log('Пользователь отклонил установку');
+      }
+      deferredPrompt = null;
+    });
+  } else {
+    // Если deferredPrompt нет, но кнопка видна - пробуем альтернативный способ
+    console.log('deferredPrompt отсутствует, пробуем альтернативный способ');
+    // Для Android Chrome можно попробовать показать нативный диалог
+    if (window.navigator && window.navigator.share) {
+      // Небольшая подсказка пользователю
+      alert('Нажмите "Добавить на главный экран" в меню браузера');
+    }
+  }
+}
+
+// Обработчик события beforeinstallprompt
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
+  console.log('beforeinstallprompt событие получено');
   
   // Показываем кнопку установки в лобби
+  showInstallButton();
+  
+  // Назначаем обработчики для кнопок
   const lobbyInstallBtn = document.getElementById('lobby-install-btn');
-  const banner = document.getElementById('pwa-install-banner');
   const pwaInstallBtn = document.getElementById('pwa-install-btn');
+  const banner = document.getElementById('pwa-install-banner');
   
-  lobbyInstallBtn.classList.remove('hidden');
-  banner.classList.add('visible');
+  if (lobbyInstallBtn) {
+    // Удаляем старые обработчики
+    const newBtn = lobbyInstallBtn.cloneNode(true);
+    lobbyInstallBtn.parentNode.replaceChild(newBtn, lobbyInstallBtn);
+    newBtn.addEventListener('click', handleInstall);
+    newBtn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      handleInstall();
+    });
+  }
   
-  const handleInstall = () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('Пользователь установил PWA');
-        } else {
-          console.log('Пользователь отклонил установку');
-        }
-        deferredPrompt = null;
-        lobbyInstallBtn.classList.add('hidden');
-        banner.classList.remove('visible');
-      });
-    }
-  };
-  
-  lobbyInstallBtn.onclick = handleInstall;
-  lobbyInstallBtn.ontouchend = (e) => {
-    e.preventDefault();
-    handleInstall();
-  };
-  
-  pwaInstallBtn.onclick = handleInstall;
-  pwaInstallBtn.ontouchend = (e) => {
-    e.preventDefault();
-    handleInstall();
-  };
+  if (pwaInstallBtn) {
+    const newBtn = pwaInstallBtn.cloneNode(true);
+    pwaInstallBtn.parentNode.replaceChild(newBtn, pwaInstallBtn);
+    newBtn.addEventListener('click', handleInstall);
+    newBtn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      handleInstall();
+    });
+  }
 });
 
+// Если событие уже произошло до загрузки скрипта
+if (window.deferredPrompt) {
+  deferredPrompt = window.deferredPrompt;
+  showInstallButton();
+}
+
+// Проверка, установлено ли уже приложение
 window.addEventListener('appinstalled', () => {
   console.log('PWA установлено!');
-  document.getElementById('lobby-install-btn').classList.add('hidden');
-  document.getElementById('pwa-install-banner').classList.remove('visible');
+  hideInstallButton();
+  deferredPrompt = null;
 });
+
+// Также проверяем, не запущено ли приложение в режиме PWA
+if (window.matchMedia('(display-mode: standalone)').matches) {
+  console.log('Приложение запущено в режиме PWA');
+  hideInstallButton();
+}
+
+// Дополнительная проверка через display-mode
+if (window.navigator.standalone) {
+  console.log('Приложение запущено в режиме PWA (iOS)');
+  hideInstallButton();
+}
+
+// Периодическая проверка, не появилась ли возможность установки
+setInterval(() => {
+  if (deferredPrompt && !installButtonShown) {
+    showInstallButton();
+  }
+}, 3000);
 
 // ========== GAME CODE ==========
 (function(){
@@ -697,6 +810,11 @@ window.addEventListener('appinstalled', () => {
     loading.classList.add('hidden');
     handleResize();
     fullscreenBtn.classList.remove('hidden');
+    
+    // Проверяем, не появилась ли возможность установки после загрузки
+    if (deferredPrompt && !installButtonShown) {
+      showInstallButton();
+    }
   }, 500);
   requestAnimationFrame(loop);
 })();
