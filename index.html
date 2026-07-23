@@ -299,84 +299,60 @@
     }
     #loading.hidden { opacity:0; pointer-events:none; }
 
-    /* Универсальная кнопка установки PWA */
-    #pwa-install-btn-universal {
+    /* PWA Install Banner */
+    #pwa-install-banner {
       position:fixed;
       bottom:20px;
       left:50%;
       transform:translateX(-50%);
-      background:linear-gradient(180deg, #4CAF50, #2E7D32);
-      border:2px solid #66BB6A;
-      color:#fff;
-      padding:14px 32px;
+      background:rgba(0,0,0,0.92);
+      backdrop-filter:blur(20px);
+      padding:16px 24px;
       border-radius:16px;
-      font-weight:bold;
-      font-size:1rem;
-      cursor:pointer;
-      touch-action:manipulation;
-      z-index:50;
-      box-shadow:0 4px 25px rgba(76,175,80,0.5);
-      animation:pulse-green 2s infinite;
-      display:none;
-      min-height:56px;
-      min-width:200px;
-      text-align:center;
-      letter-spacing:0.05em;
-    }
-    #pwa-install-btn-universal.visible {
-      display:block;
-    }
-    #pwa-install-btn-universal:active { transform:scale(0.95); }
-    @keyframes pulse-green {
-      0%, 100% { box-shadow: 0 4px 25px rgba(76,175,80,0.5); }
-      50% { box-shadow: 0 4px 45px rgba(76,175,80,0.9); }
-    }
-
-    /* Инструкция по установке */
-    #install-instruction {
-      position:fixed;
-      top:0; left:0;
-      width:100%; height:100%;
-      background:rgba(0,0,0,0.95);
-      z-index:100;
-      display:none;
-      justify-content:center;
-      align-items:center;
-      flex-direction:column;
-      padding:2rem;
+      border:1px solid rgba(76,175,80,0.3);
       color:#fff;
+      z-index:50;
+      display:none;
+      max-width:90vw;
+      width:400px;
+      text-align:center;
+      box-shadow:0 8px 40px rgba(0,0,0,0.8);
+      animation:slideUp 0.5s ease-out;
     }
-    #install-instruction.active { display:flex; }
-    #install-instruction h2 {
-      color:#4CAF50;
-      font-size:1.8rem;
-      margin-bottom:1.5rem;
+    #pwa-install-banner.visible { display:block; }
+    @keyframes slideUp {
+      from { opacity:0; transform:translateX(-50%) translateY(30px); }
+      to { opacity:1; transform:translateX(-50%) translateY(0); }
     }
-    #install-instruction .step {
-      background:rgba(255,255,255,0.05);
-      padding:1rem;
+    #pwa-install-banner .title { font-size:1.1rem; font-weight:bold; margin-bottom:4px; color:#4CAF50; }
+    #pwa-install-banner .sub { font-size:0.8rem; color:#8899aa; margin-bottom:12px; }
+    #pwa-install-banner .btn-group { display:flex; gap:10px; justify-content:center; }
+    #pwa-install-banner .btn-install {
+      background:linear-gradient(180deg, #4CAF50, #2E7D32);
+      border:none; color:#fff;
+      padding:10px 30px;
       border-radius:12px;
-      margin-bottom:0.8rem;
-      max-width:500px;
-      width:100%;
-      border-left:3px solid #4CAF50;
-    }
-    #install-instruction .step .icon { font-size:1.8rem; margin-right:10px; }
-    #install-instruction .step .text { font-size:1rem; line-height:1.4; }
-    #install-instruction .step .highlight { color:#f1c40f; font-weight:bold; }
-    #install-instruction .close-btn {
-      margin-top:1.5rem;
-      background:linear-gradient(180deg, #f1c40f, #b8860b);
-      border:none;
-      color:#0a0a0a;
-      padding:0.8rem 2.5rem;
-      border-radius:2rem;
       font-weight:bold;
-      font-size:1rem;
+      font-size:0.9rem;
       cursor:pointer;
       touch-action:manipulation;
+      transition:0.15s;
+      flex:1;
     }
-    #install-instruction .close-btn:active { transform:scale(0.95); }
+    #pwa-install-banner .btn-install:active { transform:scale(0.95); }
+    #pwa-install-banner .btn-close {
+      background:rgba(255,255,255,0.05);
+      border:1px solid #444;
+      color:#888;
+      padding:10px 20px;
+      border-radius:12px;
+      font-weight:bold;
+      font-size:0.9rem;
+      cursor:pointer;
+      touch-action:manipulation;
+      transition:0.15s;
+    }
+    #pwa-install-banner .btn-close:active { transform:scale(0.95); background:rgba(255,255,255,0.1); }
   </style>
 </head>
 <body>
@@ -390,25 +366,14 @@
     <button class="lobby-btn" id="start-btn">▶ НАЧАТЬ</button>
   </div>
 
-  <!-- Универсальная кнопка установки PWA -->
-  <button id="pwa-install-btn-universal">📲 УСТАНОВИТЬ ИГРУ</button>
-
-  <!-- Инструкция по установке -->
-  <div id="install-instruction">
-    <h2>📲 Как установить игру</h2>
-    <div class="step">
-      <div><span class="icon">1️⃣</span><span class="text">Нажмите на <span class="highlight">меню браузера</span> (три точки или три полоски)</span></div>
+  <!-- PWA Install Banner -->
+  <div id="pwa-install-banner">
+    <div class="title">📲 Установить игру</div>
+    <div class="sub">Добавьте на главный экран для быстрого доступа</div>
+    <div class="btn-group">
+      <button class="btn-install" id="pwa-install-btn">Установить</button>
+      <button class="btn-close" id="pwa-close-btn">✕</button>
     </div>
-    <div class="step">
-      <div><span class="icon">2️⃣</span><span class="text">Выберите <span class="highlight">"Добавить на главный экран"</span></span></div>
-    </div>
-    <div class="step">
-      <div><span class="icon">3️⃣</span><span class="text">Нажмите <span class="highlight">"Добавить"</span> или <span class="highlight">"Установить"</span></span></div>
-    </div>
-    <div class="step" style="border-left-color:#f1c40f;">
-      <div><span class="icon">💡</span><span class="text">Игра будет доступна на главном экране как <span class="highlight">отдельное приложение</span></span></div>
-    </div>
-    <button class="close-btn" id="close-instruction">✕ ПОНЯТНО</button>
   </div>
 
   <div id="ui-layer">
@@ -443,138 +408,134 @@
 </div>
 
 <script>
-// ========== SERVICE WORKER (упрощенный, без кеширования) ==========
-(function registerSW() {
-  if ('serviceWorker' in navigator) {
-    const swCode = `
-      self.addEventListener('install', event => {
-        self.skipWaiting();
-      });
+// ========== SERVICE WORKER ==========
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE_NAME = 'anomaly-v8';
+    const urlsToCache = [
+      '.',
+      '?v=8'
+    ];
 
-      self.addEventListener('activate', event => {
-        event.waitUntil(clients.claim());
-      });
+    self.addEventListener('install', event => {
+      event.waitUntil(
+        caches.open(CACHE_NAME)
+          .then(cache => cache.addAll(urlsToCache))
+          .then(() => self.skipWaiting())
+      );
+    });
 
-      self.addEventListener('fetch', event => {
-        event.respondWith(fetch(event.request));
-      });
-    `;
+    self.addEventListener('activate', event => {
+      event.waitUntil(
+        caches.keys().then(cacheNames => {
+          return Promise.all(
+            cacheNames.map(cacheName => {
+              if (cacheName !== CACHE_NAME) {
+                return caches.delete(cacheName);
+              }
+            })
+          );
+        }).then(() => self.clients.claim())
+      );
+    });
 
-    try {
-      navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(swCode), { scope: '/' })
-        .then(() => console.log('✅ Service Worker зарегистрирован'))
-        .catch(err => console.log('❌ Service Worker ошибка:', err));
-    } catch(e) {
-      console.log('❌ Ошибка регистрации SW:', e);
-    }
-  }
-})();
+    self.addEventListener('fetch', event => {
+      event.respondWith(
+        caches.match(event.request)
+          .then(response => response || fetch(event.request))
+      );
+    });
+  `;
+  
+  navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(swCode))
+    .then(() => console.log('✅ Service Worker зарегистрирован'))
+    .catch(err => console.log('❌ Service Worker ошибка:', err));
+}
 
-// ========== PWA INSTALL (УНИВЕРСАЛЬНЫЙ) ==========
+// ========== PWA INSTALL ==========
 let deferredPrompt = null;
-const universalBtn = document.getElementById('pwa-install-btn-universal');
-const instruction = document.getElementById('install-instruction');
+const installBanner = document.getElementById('pwa-install-banner');
+const installBtn = document.getElementById('pwa-install-btn');
+const closeBtn = document.getElementById('pwa-close-btn');
 
-// Функция показа кнопки
-function showUniversalButton() {
-  if (universalBtn && !universalBtn.classList.contains('visible')) {
-    universalBtn.classList.add('visible');
-    console.log('📲 Универсальная кнопка установки показана');
+function showInstallBanner() {
+  if (installBanner && !installBanner.classList.contains('visible')) {
+    installBanner.classList.add('visible');
+    console.log('📲 Баннер установки показан');
   }
 }
 
-// Функция скрытия кнопки
-function hideUniversalButton() {
-  if (universalBtn) {
-    universalBtn.classList.remove('visible');
-    console.log('📲 Кнопка установки скрыта');
+function hideInstallBanner() {
+  if (installBanner) {
+    installBanner.classList.remove('visible');
+    console.log('📲 Баннер установки скрыт');
   }
 }
 
-// Показ инструкции
-function showInstruction() {
-  if (instruction) {
-    instruction.classList.add('active');
-  }
-}
-
-// Скрытие инструкции
-function hideInstruction() {
-  if (instruction) {
-    instruction.classList.remove('active');
-  }
-}
-
-// Универсальный обработчик установки
-function handleUniversalInstall() {
+function handleInstall() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then((choiceResult) => {
       if (choiceResult.outcome === 'accepted') {
         console.log('✅ Пользователь установил PWA');
-        hideUniversalButton();
+        hideInstallBanner();
       } else {
         console.log('❌ Пользователь отклонил установку');
-        showInstruction();
+        hideInstallBanner();
       }
       deferredPrompt = null;
     });
   } else {
-    showInstruction();
+    // Если deferredPrompt нет, показываем инструкцию
+    alert('📲 Чтобы установить игру:\n1. Нажмите на меню браузера (три точки)\n2. Выберите "Добавить на главный экран"\n3. Нажмите "Добавить"');
+    hideInstallBanner();
   }
 }
 
-// === ОБРАБОТЧИК beforeinstallprompt ===
+// Обработчик события beforeinstallprompt
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
   console.log('📲 beforeinstallprompt событие получено!');
-  showUniversalButton();
+  showInstallBanner();
 });
 
-// === ПРИНУДИТЕЛЬНЫЙ ПОКАЗ КНОПКИ ===
-setTimeout(() => {
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  if (!isStandalone) {
-    const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (isMobile) {
-      showUniversalButton();
-      console.log('📲 Принудительный показ кнопки на мобильном устройстве');
-    }
-  }
-}, 1500);
-
-// === ОБРАБОТЧИК КНОПКИ ===
-if (universalBtn) {
-  universalBtn.addEventListener('click', handleUniversalInstall);
-  universalBtn.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    handleUniversalInstall();
-  });
-}
-
-// === ЗАКРЫТИЕ ИНСТРУКЦИИ ===
-const closeInstructionBtn = document.getElementById('close-instruction');
-if (closeInstructionBtn) {
-  closeInstructionBtn.addEventListener('click', hideInstruction);
-  closeInstructionBtn.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    hideInstruction();
-  });
-}
-
-// === ОТСЛЕЖИВАНИЕ УСТАНОВКИ ===
+// Если приложение уже установлено
 window.addEventListener('appinstalled', () => {
-  console.log('✅ PWA успешно установлено!');
-  hideUniversalButton();
+  console.log('✅ PWA установлено!');
+  hideInstallBanner();
   deferredPrompt = null;
 });
 
-// === ПРОВЕРКА РЕЖИМА PWA ===
+// Проверка, запущено ли в режиме PWA
 if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
   console.log('📱 Приложение запущено в режиме PWA');
-  hideUniversalButton();
+  hideInstallBanner();
 }
+
+// Назначаем обработчики для кнопок
+if (installBtn) {
+  installBtn.addEventListener('click', handleInstall);
+  installBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    handleInstall();
+  });
+}
+
+if (closeBtn) {
+  closeBtn.addEventListener('click', hideInstallBanner);
+  closeBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    hideInstallBanner();
+  });
+}
+
+// Показываем баннер через 2 секунды, если событие уже произошло
+setTimeout(() => {
+  if (deferredPrompt && !installBanner.classList.contains('visible')) {
+    showInstallBanner();
+  }
+}, 2000);
 
 // ========== GAME CODE ==========
 (function(){
@@ -954,17 +915,11 @@ if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.
   });
 
   function loop(){if(gameStarted)drawScene();requestAnimationFrame(loop)}
-  
-  // Загрузка игры
   setTimeout(()=>{
     loading.classList.add('hidden');
     handleResize();
     fullscreenBtn.classList.remove('hidden');
-    // Принудительно запускаем отрисовку
-    drawScene();
   }, 500);
-  
-  // Запускаем цикл анимации
   requestAnimationFrame(loop);
 })();
 </script>
