@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#000000">
@@ -17,41 +17,65 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     html, body {
       width:100%; height:100%; overflow:hidden;
-      background:#000; touch-action:manipulation;
+      background:#000;
+      touch-action:manipulation;
       font-family:'Georgia',serif;
-      position:fixed; top:0; left:0; right:0; bottom:0;
-      user-select: none; -webkit-user-select: none;
-      -webkit-touch-callout: none;
+      position:fixed;
+      top:0; left:0; right:0; bottom:0;
+      user-select:none;
+      -webkit-user-select:none;
+      -webkit-touch-callout:none;
     }
     body { background:#000; }
     #game-wrapper {
-      position:fixed; top:0; left:0; right:0; bottom:0;
+      position:fixed;
+      top:0; left:0; right:0; bottom:0;
       width:100%; height:100%;
-      background:#000; overflow:hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background:#000;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
     canvas {
       display:block;
       width:100% !important;
       height:100% !important;
       touch-action:manipulation;
-      touch-action: none;
-      background: #000;
-      image-rendering: auto;
+      background:#000;
     }
 
     #lobby-layer {
-      position:absolute; top:0; left:0; width:100%; height:100%;
-      display:flex; justify-content:center; align-items:center; flex-direction:column;
-      z-index:30; background:rgba(10,10,20,0.96);
-      transition:opacity 0.5s; pointer-events:auto;
+      position:absolute;
+      top:0; left:0;
+      width:100%; height:100%;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      z-index:30;
+      background:rgba(10,10,20,0.96);
+      transition:opacity 0.5s;
+      pointer-events:auto;
       padding:1rem;
     }
     #lobby-layer.hidden { opacity:0; pointer-events:none; }
-    .lobby-title { font-size:clamp(2rem, 8vw, 5rem); color:#e0a800; text-shadow:0 0 30px rgba(224,168,0,0.4); letter-spacing:0.3em; font-weight:bold; margin-bottom:0.5rem; text-align:center; }
-    .lobby-subtitle { font-size:clamp(0.8rem, 2.5vw, 1.4rem); color:#8899aa; letter-spacing:0.3em; margin-bottom:2rem; text-align:center; }
+    .lobby-title {
+      font-size:clamp(2rem, 8vw, 5rem);
+      color:#e0a800;
+      text-shadow:0 0 30px rgba(224,168,0,0.4);
+      letter-spacing:0.3em;
+      font-weight:bold;
+      margin-bottom:0.5rem;
+      text-align:center;
+    }
+    .lobby-subtitle {
+      font-size:clamp(0.8rem, 2.5vw, 1.4rem);
+      color:#8899aa;
+      letter-spacing:0.3em;
+      margin-bottom:2rem;
+      text-align:center;
+    }
     .lobby-btn {
       background:linear-gradient(180deg, #f1c40f, #b8860b);
       border:none;
@@ -72,13 +96,26 @@
     }
     .lobby-btn:active { transform:scale(0.95); }
 
-    #ui-layer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none; }
+    #ui-layer {
+      position:absolute;
+      top:0; left:0;
+      width:100%; height:100%;
+      pointer-events:none;
+      display:none;
+    }
 
     #ui-inventory {
-      position:absolute; top:8px; left:8px;
-      background:rgba(8,8,15,0.92); backdrop-filter:blur(10px);
-      padding:6px; border-radius:16px; border:1px solid rgba(120,120,140,0.3);
-      pointer-events:auto; display:flex; gap:5px; flex-wrap:wrap;
+      position:absolute;
+      top:8px; left:8px;
+      background:rgba(8,8,15,0.92);
+      backdrop-filter:blur(10px);
+      padding:6px;
+      border-radius:16px;
+      border:1px solid rgba(120,120,140,0.3);
+      pointer-events:auto;
+      display:flex;
+      gap:5px;
+      flex-wrap:wrap;
       max-width:calc(100vw - 16px);
       touch-action:manipulation;
       z-index:10;
@@ -86,46 +123,78 @@
     .inv-slot {
       width:44px; height:44px;
       background:radial-gradient(circle at 35% 35%, #2a2a3e, #14142a);
-      border:2px solid #3a3a4e; border-radius:10px;
-      display:flex; justify-content:center; align-items:center;
-      font-size:1.4rem; cursor:pointer; transition:0.1s;
+      border:2px solid #3a3a4e;
+      border-radius:10px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      font-size:1.4rem;
+      cursor:pointer;
+      transition:0.1s;
       touch-action:manipulation;
-      min-width:44px; min-height:44px;
+      min-width:44px;
+      min-height:44px;
     }
     .inv-slot:active { transform:scale(0.9); }
     .inv-slot.selected { border-color:#f1c40f; box-shadow:0 0 15px rgba(241,196,15,0.4); }
     .inv-slot.empty { color:#333; font-size:0.7rem; pointer-events:none; }
 
     #ui-desc {
-      position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
-      background:rgba(8,8,15,0.92); backdrop-filter:blur(12px);
-      padding:8px 20px; border-radius:24px;
-      font-size:0.9rem; color:#e0e0e0;
-      pointer-events:none; text-align:center; white-space:nowrap;
-      opacity:0; transition:opacity 0.3s; max-width:80vw;
+      position:absolute;
+      bottom:20px;
+      left:50%;
+      transform:translateX(-50%);
+      background:rgba(8,8,15,0.92);
+      backdrop-filter:blur(12px);
+      padding:8px 20px;
+      border-radius:24px;
+      font-size:0.9rem;
+      color:#e0e0e0;
+      pointer-events:none;
+      text-align:center;
+      white-space:nowrap;
+      opacity:0;
+      transition:opacity 0.3s;
+      max-width:80vw;
       border:1px solid rgba(255,255,255,0.08);
       z-index:10;
     }
     #ui-desc.visible { opacity:1; }
 
     #ui-back {
-      position:absolute; bottom:20px; right:12px;
-      background:rgba(20,20,30,0.92); border:2px solid #555; color:#ccc;
-      padding:8px 16px; border-radius:22px;
-      cursor:pointer; font-size:0.9rem;
-      pointer-events:auto; display:none; transition:0.1s;
+      position:absolute;
+      bottom:20px;
+      right:12px;
+      background:rgba(20,20,30,0.92);
+      border:2px solid #555;
+      color:#ccc;
+      padding:8px 16px;
+      border-radius:22px;
+      cursor:pointer;
+      font-size:0.9rem;
+      pointer-events:auto;
+      display:none;
+      transition:0.1s;
       touch-action:manipulation;
-      min-height:44px; min-width:80px;
+      min-height:44px;
+      min-width:80px;
       z-index:10;
     }
     #ui-back:active { background:#333; transform:scale(0.95); }
 
     #fullscreen-btn {
-      position:absolute; top:8px; right:8px;
-      background:rgba(20,20,30,0.85); border:2px solid #555; color:#ccc;
-      padding:6px 12px; border-radius:18px;
-      cursor:pointer; font-size:0.8rem;
-      pointer-events:auto; z-index:15;
+      position:absolute;
+      top:8px;
+      right:8px;
+      background:rgba(20,20,30,0.85);
+      border:2px solid #555;
+      color:#ccc;
+      padding:6px 12px;
+      border-radius:18px;
+      cursor:pointer;
+      font-size:0.8rem;
+      pointer-events:auto;
+      z-index:15;
       touch-action:manipulation;
       min-height:36px;
       backdrop-filter:blur(10px);
@@ -136,33 +205,101 @@
     #fullscreen-btn.hidden { display:none; }
 
     #win-screen {
-      position:absolute; top:0; left:0; width:100%; height:100%;
-      display:none; justify-content:center; align-items:center; flex-direction:column;
-      background:rgba(0,0,0,0.94); z-index:20; padding:2rem; text-align:center;
+      position:absolute;
+      top:0; left:0;
+      width:100%; height:100%;
+      display:none;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      background:rgba(0,0,0,0.94);
+      z-index:20;
+      padding:2rem;
+      text-align:center;
     }
     #win-screen h1 { color:#00ffcc; font-size:clamp(2rem, 7vw, 3.5rem); margin-bottom:1rem; }
     #win-screen p { color:#bbb; font-size:0.9rem; max-width:80vw; margin-bottom:2rem; }
-    #win-screen .final-btn { background:linear-gradient(180deg, #f1c40f, #b8860b); border:none; color:#0a0a0a; padding:0.8rem 2rem; border-radius:2.5rem; font-weight:bold; font-size:0.9rem; cursor:pointer; touch-action:manipulation; min-height:48px; }
+    #win-screen .final-btn {
+      background:linear-gradient(180deg, #f1c40f, #b8860b);
+      border:none;
+      color:#0a0a0a;
+      padding:0.8rem 2rem;
+      border-radius:2.5rem;
+      font-weight:bold;
+      font-size:0.9rem;
+      cursor:pointer;
+      touch-action:manipulation;
+      min-height:48px;
+    }
 
     #letter-overlay, #diary-overlay {
-      position:absolute; top:0; left:0; width:100%; height:100%;
-      display:none; justify-content:center; align-items:center;
-      background:rgba(0,0,0,0.93); z-index:40; flex-direction:column; padding:1rem;
+      position:absolute;
+      top:0; left:0;
+      width:100%; height:100%;
+      display:none;
+      justify-content:center;
+      align-items:center;
+      background:rgba(0,0,0,0.93);
+      z-index:40;
+      flex-direction:column;
+      padding:1rem;
     }
     #letter-overlay.active, #diary-overlay.active { display:flex; }
-    #letter-content { background:#f4e4c1; padding:1.5rem; border-radius:1rem; max-width:min(90vw, 450px); color:#1a1008; font-size:0.9rem; line-height:1.5; max-height:65vh; overflow-y:auto; }
-    #diary-content { background:#1a1a2e; padding:1.5rem; border-radius:1rem; max-width:min(90vw, 450px); color:#d0d0e0; font-size:0.9rem; line-height:1.5; border:1px solid #444; max-height:65vh; overflow-y:auto; }
-    #letter-close, #diary-close { margin-top:1rem; background:#2a1a10; color:#f4e4c1; border:none; padding:0.8rem 2rem; border-radius:2rem; font-weight:bold; cursor:pointer; font-size:0.9rem; touch-action:manipulation; min-height:44px; }
+    #letter-content {
+      background:#f4e4c1;
+      padding:1.5rem;
+      border-radius:1rem;
+      max-width:min(90vw, 450px);
+      color:#1a1008;
+      font-size:0.9rem;
+      line-height:1.5;
+      max-height:65vh;
+      overflow-y:auto;
+    }
+    #diary-content {
+      background:#1a1a2e;
+      padding:1.5rem;
+      border-radius:1rem;
+      max-width:min(90vw, 450px);
+      color:#d0d0e0;
+      font-size:0.9rem;
+      line-height:1.5;
+      border:1px solid #444;
+      max-height:65vh;
+      overflow-y:auto;
+    }
+    #letter-close, #diary-close {
+      margin-top:1rem;
+      background:#2a1a10;
+      color:#f4e4c1;
+      border:none;
+      padding:0.8rem 2rem;
+      border-radius:2rem;
+      font-weight:bold;
+      cursor:pointer;
+      font-size:0.9rem;
+      touch-action:manipulation;
+      min-height:44px;
+    }
     #diary-close { background:linear-gradient(180deg, #e0a800, #b8860b); color:#0a0a0a; }
 
-    #loading { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#000; z-index:60; color:#777; font-size:1rem; letter-spacing:0.3em; transition:opacity 0.8s; }
+    #loading {
+      position:absolute;
+      top:0; left:0;
+      width:100%; height:100%;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:#000;
+      z-index:60;
+      color:#777;
+      font-size:1rem;
+      letter-spacing:0.3em;
+      transition:opacity 0.8s;
+    }
     #loading.hidden { opacity:0; pointer-events:none; }
     
-    .inv-slot, .lobby-btn, #ui-back, .final-btn, #letter-close, #diary-close, #fullscreen-btn {
-      touch-action: manipulation;
-    }
-
-    /* PWA Install Banner - появляется автоматически */
+    /* PWA Install Banner */
     #pwa-install-banner {
       position:fixed;
       bottom:20px;
@@ -172,7 +309,7 @@
       backdrop-filter:blur(20px);
       padding:16px 24px;
       border-radius:16px;
-      border:1px solid rgba(76, 175, 80, 0.3);
+      border:1px solid rgba(76,175,80,0.3);
       color:#fff;
       z-index:50;
       display:none;
@@ -180,35 +317,19 @@
       width:400px;
       text-align:center;
       box-shadow:0 8px 40px rgba(0,0,0,0.8);
-      animation: slideUp 0.5s ease-out;
+      animation:slideUp 0.5s ease-out;
     }
-    #pwa-install-banner.visible {
-      display:block;
-    }
+    #pwa-install-banner.visible { display:block; }
     @keyframes slideUp {
       from { opacity:0; transform:translateX(-50%) translateY(30px); }
       to { opacity:1; transform:translateX(-50%) translateY(0); }
     }
-    #pwa-install-banner .title {
-      font-size:1.1rem;
-      font-weight:bold;
-      margin-bottom:4px;
-      color:#4CAF50;
-    }
-    #pwa-install-banner .sub {
-      font-size:0.8rem;
-      color:#8899aa;
-      margin-bottom:12px;
-    }
-    #pwa-install-banner .btn-group {
-      display:flex;
-      gap:10px;
-      justify-content:center;
-    }
+    #pwa-install-banner .title { font-size:1.1rem; font-weight:bold; margin-bottom:4px; color:#4CAF50; }
+    #pwa-install-banner .sub { font-size:0.8rem; color:#8899aa; margin-bottom:12px; }
+    #pwa-install-banner .btn-group { display:flex; gap:10px; justify-content:center; }
     #pwa-install-banner .btn-install {
       background:linear-gradient(180deg, #4CAF50, #2E7D32);
-      border:none;
-      color:#fff;
+      border:none; color:#fff;
       padding:10px 30px;
       border-radius:12px;
       font-weight:bold;
@@ -245,7 +366,6 @@
     <button class="lobby-btn" id="start-btn">▶ НАЧАТЬ</button>
   </div>
 
-  <!-- PWA Install Banner - появляется автоматически на телефонах -->
   <div id="pwa-install-banner">
     <div class="title">📲 Установить игру</div>
     <div class="sub">Добавьте на главный экран для быстрого доступа</div>
@@ -287,49 +407,69 @@
 </div>
 
 <script>
-// ========== SERVICE WORKER ==========
-if ('serviceWorker' in navigator) {
-  const swCode = `
-    const CACHE_NAME = 'anomaly-v5';
-    const urlsToCache = [
-      '.',
-      '?v=5'
-    ];
+// ========== SERVICE WORKER (встроенный) ==========
+(function registerSW() {
+  if ('serviceWorker' in navigator) {
+    // Создаем Service Worker из строки
+    const swCode = `
+      const CACHE_NAME = 'anomaly-v6';
+      const urlsToCache = [
+        '.',
+        '?v=6'
+      ];
 
-    self.addEventListener('install', event => {
-      event.waitUntil(
-        caches.open(CACHE_NAME)
-          .then(cache => cache.addAll(urlsToCache))
-          .then(() => self.skipWaiting())
-      );
-    });
+      self.addEventListener('install', event => {
+        event.waitUntil(
+          caches.open(CACHE_NAME)
+            .then(cache => cache.addAll(urlsToCache))
+            .then(() => self.skipWaiting())
+        );
+      });
 
-    self.addEventListener('activate', event => {
-      event.waitUntil(
-        caches.keys().then(cacheNames => {
-          return Promise.all(
-            cacheNames.map(cacheName => {
-              if (cacheName !== CACHE_NAME) {
-                return caches.delete(cacheName);
-              }
-            })
-          );
-        }).then(() => self.clients.claim())
-      );
-    });
+      self.addEventListener('activate', event => {
+        event.waitUntil(
+          caches.keys().then(cacheNames => {
+            return Promise.all(
+              cacheNames.map(cacheName => {
+                if (cacheName !== CACHE_NAME) {
+                  return caches.delete(cacheName);
+                }
+              })
+            );
+          }).then(() => self.clients.claim())
+        );
+      });
 
-    self.addEventListener('fetch', event => {
-      event.respondWith(
-        caches.match(event.request)
-          .then(response => response || fetch(event.request))
-      );
-    });
-  `;
-  
-  navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(swCode))
-    .then(() => console.log('✅ Service Worker зарегистрирован'))
-    .catch(err => console.log('❌ Service Worker ошибка:', err));
-}
+      self.addEventListener('fetch', event => {
+        event.respondWith(
+          caches.match(event.request)
+            .then(response => response || fetch(event.request))
+        );
+      });
+    `;
+
+    // Регистрируем Service Worker через Blob URL
+    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(swBlob);
+    
+    navigator.serviceWorker.register(swUrl)
+      .then(() => {
+        console.log('✅ Service Worker зарегистрирован');
+        URL.revokeObjectURL(swUrl);
+      })
+      .catch(err => {
+        console.log('❌ Service Worker ошибка:', err);
+        // Пробуем альтернативный способ регистрации
+        try {
+          navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(swCode))
+            .then(() => console.log('✅ Service Worker зарегистрирован (альтернативный)'))
+            .catch(e => console.log('❌ Альтернативная регистрация failed:', e));
+        } catch(e) {
+          console.log('❌ Все способы регистрации SW failed');
+        }
+      });
+  }
+})();
 
 // ========== PWA INSTALL ==========
 let deferredPrompt = null;
@@ -337,7 +477,6 @@ const installBanner = document.getElementById('pwa-install-banner');
 const installBtn = document.getElementById('pwa-install-btn');
 const closeBtn = document.getElementById('pwa-close-btn');
 
-// Функция для показа банера установки
 function showInstallBanner() {
   if (installBanner) {
     installBanner.classList.add('visible');
@@ -345,7 +484,6 @@ function showInstallBanner() {
   }
 }
 
-// Функция для скрытия банера установки
 function hideInstallBanner() {
   if (installBanner) {
     installBanner.classList.remove('visible');
@@ -353,7 +491,6 @@ function hideInstallBanner() {
   }
 }
 
-// Обработчик установки
 function handleInstall() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
@@ -368,7 +505,6 @@ function handleInstall() {
       deferredPrompt = null;
     });
   } else {
-    // Если deferredPrompt нет, показываем подсказку
     alert('📲 Чтобы установить игру:\n1. Нажмите на меню браузера (три точки)\n2. Выберите "Добавить на главный экран"\n3. Нажмите "Добавить"');
     hideInstallBanner();
   }
@@ -378,9 +514,7 @@ function handleInstall() {
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  console.log('📲 beforeinstallprompt событие получено');
-  
-  // Показываем баннер установки
+  console.log('📲 beforeinstallprompt событие получено!');
   showInstallBanner();
 });
 
@@ -414,12 +548,16 @@ if (closeBtn) {
   });
 }
 
-// Принудительно показываем баннер через 2 секунды, если событие уже произошло
+// Попытка показать баннер через 2 секунды
 setTimeout(() => {
   if (deferredPrompt && !installBanner.classList.contains('visible')) {
     showInstallBanner();
   }
 }, 2000);
+
+// Также пытаемся показать баннер, если событие уже было
+// Но браузер может не вызвать beforeinstallprompt, если сайт не соответствует критериям PWA
+// В этом случае показываем инструкцию
 
 // ========== GAME CODE ==========
 (function(){
