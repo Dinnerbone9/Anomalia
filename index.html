@@ -298,7 +298,7 @@
       transition:opacity 0.8s;
     }
     #loading.hidden { opacity:0; pointer-events:none; }
-    
+
     /* PWA Install Banner */
     #pwa-install-banner {
       position:fixed;
@@ -366,6 +366,7 @@
     <button class="lobby-btn" id="start-btn">▶ НАЧАТЬ</button>
   </div>
 
+  <!-- PWA Install Banner -->
   <div id="pwa-install-banner">
     <div class="title">📲 Установить игру</div>
     <div class="sub">Добавьте на главный экран для быстрого доступа</div>
@@ -407,69 +408,49 @@
 </div>
 
 <script>
-// ========== SERVICE WORKER (встроенный) ==========
-(function registerSW() {
-  if ('serviceWorker' in navigator) {
-    // Создаем Service Worker из строки
-    const swCode = `
-      const CACHE_NAME = 'anomaly-v6';
-      const urlsToCache = [
-        '.',
-        '?v=6'
-      ];
+// ========== SERVICE WORKER ==========
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE_NAME = 'anomaly-v8';
+    const urlsToCache = [
+      '.',
+      '?v=8'
+    ];
 
-      self.addEventListener('install', event => {
-        event.waitUntil(
-          caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(urlsToCache))
-            .then(() => self.skipWaiting())
-        );
-      });
+    self.addEventListener('install', event => {
+      event.waitUntil(
+        caches.open(CACHE_NAME)
+          .then(cache => cache.addAll(urlsToCache))
+          .then(() => self.skipWaiting())
+      );
+    });
 
-      self.addEventListener('activate', event => {
-        event.waitUntil(
-          caches.keys().then(cacheNames => {
-            return Promise.all(
-              cacheNames.map(cacheName => {
-                if (cacheName !== CACHE_NAME) {
-                  return caches.delete(cacheName);
-                }
-              })
-            );
-          }).then(() => self.clients.claim())
-        );
-      });
+    self.addEventListener('activate', event => {
+      event.waitUntil(
+        caches.keys().then(cacheNames => {
+          return Promise.all(
+            cacheNames.map(cacheName => {
+              if (cacheName !== CACHE_NAME) {
+                return caches.delete(cacheName);
+              }
+            })
+          );
+        }).then(() => self.clients.claim())
+      );
+    });
 
-      self.addEventListener('fetch', event => {
-        event.respondWith(
-          caches.match(event.request)
-            .then(response => response || fetch(event.request))
-        );
-      });
-    `;
-
-    // Регистрируем Service Worker через Blob URL
-    const swBlob = new Blob([swCode], { type: 'application/javascript' });
-    const swUrl = URL.createObjectURL(swBlob);
-    
-    navigator.serviceWorker.register(swUrl)
-      .then(() => {
-        console.log('✅ Service Worker зарегистрирован');
-        URL.revokeObjectURL(swUrl);
-      })
-      .catch(err => {
-        console.log('❌ Service Worker ошибка:', err);
-        // Пробуем альтернативный способ регистрации
-        try {
-          navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(swCode))
-            .then(() => console.log('✅ Service Worker зарегистрирован (альтернативный)'))
-            .catch(e => console.log('❌ Альтернативная регистрация failed:', e));
-        } catch(e) {
-          console.log('❌ Все способы регистрации SW failed');
-        }
-      });
-  }
-})();
+    self.addEventListener('fetch', event => {
+      event.respondWith(
+        caches.match(event.request)
+          .then(response => response || fetch(event.request))
+      );
+    });
+  `;
+  
+  navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(swCode))
+    .then(() => console.log('✅ Service Worker зарегистрирован'))
+    .catch(err => console.log('❌ Service Worker ошибка:', err));
+}
 
 // ========== PWA INSTALL ==========
 let deferredPrompt = null;
@@ -478,7 +459,7 @@ const installBtn = document.getElementById('pwa-install-btn');
 const closeBtn = document.getElementById('pwa-close-btn');
 
 function showInstallBanner() {
-  if (installBanner) {
+  if (installBanner && !installBanner.classList.contains('visible')) {
     installBanner.classList.add('visible');
     console.log('📲 Баннер установки показан');
   }
@@ -505,6 +486,7 @@ function handleInstall() {
       deferredPrompt = null;
     });
   } else {
+    // Если deferredPrompt нет, показываем инструкцию
     alert('📲 Чтобы установить игру:\n1. Нажмите на меню браузера (три точки)\n2. Выберите "Добавить на главный экран"\n3. Нажмите "Добавить"');
     hideInstallBanner();
   }
@@ -548,16 +530,12 @@ if (closeBtn) {
   });
 }
 
-// Попытка показать баннер через 2 секунды
+// Показываем баннер через 2 секунды, если событие уже произошло
 setTimeout(() => {
   if (deferredPrompt && !installBanner.classList.contains('visible')) {
     showInstallBanner();
   }
 }, 2000);
-
-// Также пытаемся показать баннер, если событие уже было
-// Но браузер может не вызвать beforeinstallprompt, если сайт не соответствует критериям PWA
-// В этом случае показываем инструкцию
 
 // ========== GAME CODE ==========
 (function(){
