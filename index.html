@@ -443,43 +443,20 @@
 </div>
 
 <script>
-// ========== SERVICE WORKER ==========
+// ========== SERVICE WORKER (упрощенный, без кеширования) ==========
 (function registerSW() {
   if ('serviceWorker' in navigator) {
     const swCode = `
-      const CACHE_NAME = 'anomaly-pwa-v3';
-      const urlsToCache = [
-        '/',
-        '/?v=3'
-      ];
-
       self.addEventListener('install', event => {
-        event.waitUntil(
-          caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(urlsToCache))
-            .then(() => self.skipWaiting())
-        );
+        self.skipWaiting();
       });
 
       self.addEventListener('activate', event => {
-        event.waitUntil(
-          caches.keys().then(cacheNames => {
-            return Promise.all(
-              cacheNames.map(cacheName => {
-                if (cacheName !== CACHE_NAME) {
-                  return caches.delete(cacheName);
-                }
-              })
-            );
-          }).then(() => self.clients.claim())
-        );
+        event.waitUntil(clients.claim());
       });
 
       self.addEventListener('fetch', event => {
-        event.respondWith(
-          caches.match(event.request)
-            .then(response => response || fetch(event.request))
-        );
+        event.respondWith(fetch(event.request));
       });
     `;
 
@@ -530,9 +507,7 @@ function hideInstruction() {
 
 // Универсальный обработчик установки
 function handleUniversalInstall() {
-  // Проверяем, поддерживает ли браузер нативную установку PWA
   if (deferredPrompt) {
-    // Chrome, Samsung Internet, Edge
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then((choiceResult) => {
       if (choiceResult.outcome === 'accepted') {
@@ -540,22 +515,16 @@ function handleUniversalInstall() {
         hideUniversalButton();
       } else {
         console.log('❌ Пользователь отклонил установку');
-        // Показываем инструкцию как запасной вариант
         showInstruction();
       }
       deferredPrompt = null;
     });
-  } else if (window.navigator && window.navigator.share) {
-    // Для браузеров с Web Share API (некоторые мобильные браузеры)
-    alert('📲 Чтобы установить игру:\n1. Нажмите на меню браузера\n2. Выберите "Добавить на главный экран"');
-    showInstruction();
   } else {
-    // Для всех остальных браузеров - показываем инструкцию
     showInstruction();
   }
 }
 
-// === ОБРАБОТЧИК beforeinstallprompt (для Chrome) ===
+// === ОБРАБОТЧИК beforeinstallprompt ===
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
@@ -565,11 +534,8 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 // === ПРИНУДИТЕЛЬНЫЙ ПОКАЗ КНОПКИ ===
 setTimeout(() => {
-  // Проверяем, не в PWA режиме
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  
   if (!isStandalone) {
-    // Показываем кнопку всегда на мобильных устройствах
     const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (isMobile) {
       showUniversalButton();
@@ -609,18 +575,6 @@ if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.
   console.log('📱 Приложение запущено в режиме PWA');
   hideUniversalButton();
 }
-
-// === ПРОВЕРКА ЧЕРЕЗ 3 СЕКУНДЫ ===
-setTimeout(() => {
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  if (!isStandalone && universalBtn && !universalBtn.classList.contains('visible')) {
-    const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (isMobile) {
-      showUniversalButton();
-      console.log('📲 Повторный показ кнопки');
-    }
-  }
-}, 3000);
 
 // ========== GAME CODE ==========
 (function(){
@@ -1000,11 +954,17 @@ setTimeout(() => {
   });
 
   function loop(){if(gameStarted)drawScene();requestAnimationFrame(loop)}
+  
+  // Загрузка игры
   setTimeout(()=>{
     loading.classList.add('hidden');
     handleResize();
     fullscreenBtn.classList.remove('hidden');
+    // Принудительно запускаем отрисовку
+    drawScene();
   }, 500);
+  
+  // Запускаем цикл анимации
   requestAnimationFrame(loop);
 })();
 </script>
