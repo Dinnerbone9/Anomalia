@@ -52,14 +52,6 @@
     #lobby-layer.hidden { opacity:0; pointer-events:none; }
     .lobby-title { font-size:clamp(2rem, 8vw, 5rem); color:#e0a800; text-shadow:0 0 30px rgba(224,168,0,0.4); letter-spacing:0.3em; font-weight:bold; margin-bottom:0.5rem; text-align:center; }
     .lobby-subtitle { font-size:clamp(0.8rem, 2.5vw, 1.4rem); color:#8899aa; letter-spacing:0.3em; margin-bottom:2rem; text-align:center; }
-    .lobby-btn-group {
-      display:flex;
-      flex-direction:column;
-      gap:0.8rem;
-      align-items:center;
-      width:100%;
-      max-width:400px;
-    }
     .lobby-btn {
       background:linear-gradient(180deg, #f1c40f, #b8860b);
       border:none;
@@ -73,42 +65,26 @@
       transition:0.15s;
       touch-action:manipulation;
       width:100%;
+      max-width:400px;
       min-height:60px;
       text-align:center;
       box-shadow:0 4px 15px rgba(241,196,15,0.3);
     }
     .lobby-btn:active { transform:scale(0.95); }
 
-    /* PWA Install Button */
-    #install-btn {
-      background:linear-gradient(180deg, #4CAF50, #2E7D32);
-      border:2px solid #66BB6A;
-      color:#fff;
-      box-shadow:0 4px 20px rgba(76, 175, 80, 0.4);
-      animation: pulse-green 2s infinite;
-      display:none;
-    }
-    #install-btn.visible {
-      display:block;
-    }
-    #install-btn:active { transform:scale(0.95); }
-    @keyframes pulse-green {
-      0%, 100% { box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4); }
-      50% { box-shadow: 0 4px 35px rgba(76, 175, 80, 0.8); }
-    }
-
-    #pwa-badge {
-      margin-top:1rem;
+    .lobby-install-hint {
+      margin-top:1.5rem;
       background:rgba(255,255,255,0.05);
-      padding:8px 16px;
+      padding:10px 20px;
       border-radius:12px;
-      border:1px solid rgba(255,255,255,0.1);
-      color:#8899aa;
+      border:1px solid rgba(255,255,255,0.08);
+      color:#667788;
       font-size:0.7rem;
       text-align:center;
       letter-spacing:0.05em;
+      max-width:400px;
     }
-    #pwa-badge .icon { font-size:1rem; margin-right:6px; }
+    .lobby-install-hint .icon { font-size:1rem; margin-right:6px; }
 
     #ui-layer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none; }
 
@@ -196,9 +172,80 @@
     #loading { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#000; z-index:60; color:#777; font-size:1rem; letter-spacing:0.3em; transition:opacity 0.8s; }
     #loading.hidden { opacity:0; pointer-events:none; }
     
-    .inv-slot, .lobby-btn, #ui-back, .final-btn, #letter-close, #diary-close, #fullscreen-btn, #install-btn {
+    .inv-slot, .lobby-btn, #ui-back, .final-btn, #letter-close, #diary-close, #fullscreen-btn {
       touch-action: manipulation;
     }
+
+    /* PWA Install Banner - появляется автоматически */
+    #pwa-install-banner {
+      position:fixed;
+      bottom:20px;
+      left:50%;
+      transform:translateX(-50%);
+      background:rgba(0,0,0,0.92);
+      backdrop-filter:blur(20px);
+      padding:16px 24px;
+      border-radius:16px;
+      border:1px solid rgba(76, 175, 80, 0.3);
+      color:#fff;
+      z-index:50;
+      display:none;
+      max-width:90vw;
+      width:400px;
+      text-align:center;
+      box-shadow:0 8px 40px rgba(0,0,0,0.8);
+      animation: slideUp 0.5s ease-out;
+    }
+    #pwa-install-banner.visible {
+      display:block;
+    }
+    @keyframes slideUp {
+      from { opacity:0; transform:translateX(-50%) translateY(30px); }
+      to { opacity:1; transform:translateX(-50%) translateY(0); }
+    }
+    #pwa-install-banner .title {
+      font-size:1.1rem;
+      font-weight:bold;
+      margin-bottom:4px;
+      color:#4CAF50;
+    }
+    #pwa-install-banner .sub {
+      font-size:0.8rem;
+      color:#8899aa;
+      margin-bottom:12px;
+    }
+    #pwa-install-banner .btn-group {
+      display:flex;
+      gap:10px;
+      justify-content:center;
+    }
+    #pwa-install-banner .btn-install {
+      background:linear-gradient(180deg, #4CAF50, #2E7D32);
+      border:none;
+      color:#fff;
+      padding:10px 30px;
+      border-radius:12px;
+      font-weight:bold;
+      font-size:0.9rem;
+      cursor:pointer;
+      touch-action:manipulation;
+      transition:0.15s;
+      flex:1;
+    }
+    #pwa-install-banner .btn-install:active { transform:scale(0.95); }
+    #pwa-install-banner .btn-close {
+      background:rgba(255,255,255,0.05);
+      border:1px solid #444;
+      color:#888;
+      padding:10px 20px;
+      border-radius:12px;
+      font-weight:bold;
+      font-size:0.9rem;
+      cursor:pointer;
+      touch-action:manipulation;
+      transition:0.15s;
+    }
+    #pwa-install-banner .btn-close:active { transform:scale(0.95); background:rgba(255,255,255,0.1); }
   </style>
 </head>
 <body>
@@ -209,12 +256,19 @@
   <div id="lobby-layer">
     <div class="lobby-title">АНОМАЛИЯ</div>
     <div class="lobby-subtitle">ТАЙНА ЗИМНЕГО ЛЕСА</div>
-    <div class="lobby-btn-group">
-      <button class="lobby-btn" id="start-btn">▶ НАЧАТЬ</button>
-      <button class="lobby-btn" id="install-btn">📲 УСТАНОВИТЬ ИГРУ</button>
+    <button class="lobby-btn" id="start-btn">▶ НАЧАТЬ</button>
+    <div class="lobby-install-hint">
+      <span class="icon">📱</span> Установите на главный экран для лучшего опыта
     </div>
-    <div id="pwa-badge">
-      <span class="icon">📱</span> PWA — установите на главный экран
+  </div>
+
+  <!-- PWA Install Banner - появляется автоматически -->
+  <div id="pwa-install-banner">
+    <div class="title">📲 Установить игру</div>
+    <div class="sub">Добавьте на главный экран для быстрого доступа</div>
+    <div class="btn-group">
+      <button class="btn-install" id="pwa-install-btn">Установить</button>
+      <button class="btn-close" id="pwa-close-btn">✕</button>
     </div>
   </div>
 
@@ -251,13 +305,12 @@
 
 <script>
 // ========== SERVICE WORKER ==========
-// Регистрация Service Worker для офлайн-доступа
 if ('serviceWorker' in navigator) {
   const swCode = `
-    const CACHE_NAME = 'anomaly-v3';
+    const CACHE_NAME = 'anomaly-v4';
     const urlsToCache = [
       '.',
-      '?v=3'
+      '?v=4'
     ];
 
     self.addEventListener('install', event => {
@@ -297,58 +350,44 @@ if ('serviceWorker' in navigator) {
 
 // ========== PWA INSTALL ==========
 let deferredPrompt = null;
-const installBtn = document.getElementById('install-btn');
-const pwaBadge = document.getElementById('pwa-badge');
+const installBanner = document.getElementById('pwa-install-banner');
+const installBtn = document.getElementById('pwa-install-btn');
+const closeBtn = document.getElementById('pwa-close-btn');
 
-// Функция для отображения кнопки установки
-function showInstallButton() {
-  if (installBtn) {
-    installBtn.classList.add('visible');
-    console.log('📲 Кнопка установки показана');
+// Функция для показа банера установки
+function showInstallBanner() {
+  if (installBanner) {
+    installBanner.classList.add('visible');
+    console.log('📲 Баннер установки показан');
   }
 }
 
-// Функция для скрытия кнопки установки
-function hideInstallButton() {
-  if (installBtn) {
-    installBtn.classList.remove('visible');
-    console.log('📲 Кнопка установки скрыта');
-  }
-  if (pwaBadge) {
-    pwaBadge.innerHTML = '<span class="icon">✅</span> Игра установлена!';
-    pwaBadge.style.borderColor = '#4CAF50';
-    pwaBadge.style.color = '#4CAF50';
+// Функция для скрытия банера установки
+function hideInstallBanner() {
+  if (installBanner) {
+    installBanner.classList.remove('visible');
+    console.log('📲 Баннер установки скрыт');
   }
 }
 
 // Обработчик установки
 function handleInstall() {
   if (deferredPrompt) {
-    // Показываем нативный диалог установки
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then((choiceResult) => {
       if (choiceResult.outcome === 'accepted') {
         console.log('✅ Пользователь установил PWA');
-        hideInstallButton();
+        hideInstallBanner();
       } else {
         console.log('❌ Пользователь отклонил установку');
-        // Показываем подсказку
-        if (pwaBadge) {
-          pwaBadge.innerHTML = '<span class="icon">💡</span> Нажмите "Добавить на главный экран" в меню браузера';
-          pwaBadge.style.borderColor = '#f1c40f';
-          pwaBadge.style.color = '#f1c40f';
-        }
+        hideInstallBanner();
       }
       deferredPrompt = null;
     });
   } else {
-    // Если deferredPrompt нет, показываем инструкцию
-    if (pwaBadge) {
-      pwaBadge.innerHTML = '<span class="icon">💡</span> Нажмите "Добавить на главный экран" в меню браузера';
-      pwaBadge.style.borderColor = '#f1c40f';
-      pwaBadge.style.color = '#f1c40f';
-    }
+    // Если deferredPrompt нет, показываем подсказку
     alert('📲 Чтобы установить игру:\n1. Нажмите на меню браузера (три точки)\n2. Выберите "Добавить на главный экран"\n3. Нажмите "Добавить"');
+    hideInstallBanner();
   }
 }
 
@@ -357,23 +396,25 @@ window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
   console.log('📲 beforeinstallprompt событие получено');
-  showInstallButton();
+  
+  // Показываем баннер установки
+  showInstallBanner();
 });
 
 // Если приложение уже установлено
 window.addEventListener('appinstalled', () => {
   console.log('✅ PWA установлено!');
-  hideInstallButton();
+  hideInstallBanner();
   deferredPrompt = null;
 });
 
 // Проверка, запущено ли в режиме PWA
 if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
   console.log('📱 Приложение запущено в режиме PWA');
-  hideInstallButton();
+  hideInstallBanner();
 }
 
-// Назначаем обработчики для кнопки установки
+// Назначаем обработчики для кнопок
 if (installBtn) {
   installBtn.addEventListener('click', handleInstall);
   installBtn.addEventListener('touchend', (e) => {
@@ -382,10 +423,18 @@ if (installBtn) {
   });
 }
 
-// Принудительно показываем кнопку через 2 секунды, если событие уже произошло
+if (closeBtn) {
+  closeBtn.addEventListener('click', hideInstallBanner);
+  closeBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    hideInstallBanner();
+  });
+}
+
+// Принудительно показываем баннер через 2 секунды, если событие уже произошло
 setTimeout(() => {
-  if (deferredPrompt && !installBtn.classList.contains('visible')) {
-    showInstallButton();
+  if (deferredPrompt && !installBanner.classList.contains('visible')) {
+    showInstallBanner();
   }
 }, 2000);
 
